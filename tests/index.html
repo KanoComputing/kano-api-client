@@ -14,8 +14,8 @@
     <script src="validator.js" type="module"></script>
     <script src="user.js" type="module"></script>
     <script type="module">
-        const ajv = new Ajv();
         mocha.checkLeaks();
+        mocha.globals(['Ajv']);
         mocha.run();
     </script>
 
