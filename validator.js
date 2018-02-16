@@ -2,7 +2,7 @@ class Validator {
     constructor() {
         this.schemas = [];
     }
-    fetchSchema(uri) {
+    static fetchSchema(uri) {
         if (typeof uri !== 'string') {
             return Promise.reject(new Error('Invalid argument'));
         }
@@ -28,7 +28,7 @@ class Validator {
         return Promise.resolve();
     }
     loadSchemas(key, uri) {
-        return this.fetchSchema(uri)
+        return Validator.fetchSchema(uri)
             .then((res) => {
                 return this.setSchema(key, res)
                     .then(() => {

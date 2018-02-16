@@ -14,17 +14,16 @@ describe('validator', () => {
     });
     // FETCH SCHEMA
     it('should require a string argument for `fetchSchema`', () => {
-        const validator = new Validator();
         const shouldFail = [
-            validator.fetchSchema(),
-            validator.fetchSchema(123),
-            validator.fetchSchema(false),
-            validator.fetchSchema({ test: 123 }),
-            validator.fetchSchema([1, 2, 3]),
-            validator.fetchSchema(() => {})
+            Validator.fetchSchema(),
+            Validator.fetchSchema(123),
+            Validator.fetchSchema(false),
+            Validator.fetchSchema({ test: 123 }),
+            Validator.fetchSchema([1, 2, 3]),
+            Validator.fetchSchema(() => {})
         ];
         const shouldSucceed = [
-            validator.fetchSchema('/schemas/test.json')
+            Validator.fetchSchema('/schemas/test.json')
         ];
 
         return Promise.all([
@@ -42,8 +41,7 @@ describe('validator', () => {
         ]);
     });
     it('shouldnt resolve if file doesnt exist for `fetchSchema` ', () => {
-        const validator = new Validator();
-        return validator.fetchSchema('file.json')
+        return Validator.fetchSchema('file.json')
             .then(() => {
                 throw new Error('Should not resolve');
             })
@@ -52,8 +50,7 @@ describe('validator', () => {
             });
     });
     it('should resolve with the json schema when calling `fetchSchema` ', () => {
-        const validator = new Validator();
-        return validator.fetchSchema('/schemas/test.json')
+        return Validator.fetchSchema('/schemas/test.json')
             .then((schema) => {
                 expect(schema).to.be.eql(testSchema);
             });
