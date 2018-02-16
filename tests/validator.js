@@ -12,19 +12,20 @@ describe('validator', () => {
     expect(validator).to.be.an('object');
     expect(validator).to.be.an(Validator);
   });
-  it('should require a string argument for `getSchema`', () => {
+  // FETCH SCHEMA
+  it('should require a string argument for `fetchSchema`', () => {
     const validator = new Validator();
-    expect(validator.getSchema).to.throwError();
-    expect(validator.getSchema).withArgs(123).to.throwError();
-    expect(validator.getSchema).withArgs(false).to.throwError();
-    expect(validator.getSchema).withArgs({test: 123}).to.throwError();
-    expect(validator.getSchema).withArgs([1, 2, 3]).to.throwError();
-    expect(validator.getSchema).withArgs(() => {}).to.throwError();
-    expect(validator.getSchema('string')).to.be.an(Promise);
+    expect(validator.fetchSchema).to.throwError();
+    expect(validator.fetchSchema).withArgs(123).to.throwError();
+    expect(validator.fetchSchema).withArgs(false).to.throwError();
+    expect(validator.fetchSchema).withArgs({test: 123}).to.throwError();
+    expect(validator.fetchSchema).withArgs([1, 2, 3]).to.throwError();
+    expect(validator.fetchSchema).withArgs(() => {}).to.throwError();
+    expect(validator.fetchSchema('string')).to.be.an(Promise);
   });
-  it('shouldnt resolve if file doesnt exist for `getSchema` ', () => {
+  it('shouldnt resolve if file doesnt exist for `fetchSchema` ', () => {
     const validator = new Validator();
-    return validator.getSchema('file.json')
+    return validator.fetchSchema('file.json')
       .then(() => {
         throw new Error('Should not resolve');
       })
@@ -32,13 +33,14 @@ describe('validator', () => {
         expect(error.message).to.be.equal('File not found');
       });
   });
-  it('should resolve with the json schema when calling `getSchema` ', () => {
+  it('should resolve with the json schema when calling `fetchSchema` ', () => {
     const validator = new Validator();
-    return validator.getSchema('/schemas/test.json')
+    return validator.fetchSchema('/schemas/test.json')
       .then((schema) => {
         expect(schema).to.be.eql(testSchema);
       });
   });
+  // SET SCHEMA
   it('should require a two arguments for `setSchema`', () => {
     const validator = new Validator();
     const schemaName = 'testSchema';
@@ -61,5 +63,35 @@ describe('validator', () => {
 
     const promise = validator.setSchema('test', testSchema);
     expect(promise).to.be.an(Promise);
+  });
+  it('should reject if schemas dont exist when calling `setSchema` ', () => {
+    let validator = new Validator();
+    const keyName = 'testKey';
+    delete validator.schemas;
+    return validator.setSchema(keyName, testSchema)
+      .then(() => {
+        throw new Error('Should not resolve');
+      })
+      .catch((error) => {
+        expect(error.message).to.be.equal('Validator is corrupted');
+      })
+  });
+  it('should resolve with nothing when calling `setSchema` ', () => {
+    const validator = new Validator();
+    const keyName = 'testKey';
+    return validator.setSchema(keyName, testSchema)
+      .then((schema) => {
+        expect(schema).to.be.eql();
+      });
+  });
+  // LOAD SCHEMA
+  it('should resolve with json schema when calling `loadSchemas`', () => {
+    const validator = new Validator();
+    const uriName = '/schemas/test.json';
+    const keyName = 'testKey';
+    return validator.loadSchemas(keyName, uriName)
+      .then((schema) => {
+        expect(schema).to.be.eql(testSchema);
+      });
   });
 });

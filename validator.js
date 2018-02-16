@@ -2,16 +2,16 @@ class Validator {
   constructor() {
     this.schemas = [];
   }
-  getSchema(uri) {
+  fetchSchema(uri) {
     if (typeof uri != 'string') {
       throw new Error('Invalid argument');
     }
     return fetch(uri)
-      .then((r) => {
-        if (!r.ok) {
+      .then((res) => {
+        if (!res.ok) {
           throw new Error('File not found');
         }
-        return r.json();
+        return res.json();
       });
   }
   setSchema(key, schema) {
@@ -26,6 +26,15 @@ class Validator {
     }
     this.schemas[key] = schema;
     return Promise.resolve();
+  }
+  loadSchemas(key, uri) {
+    return this.fetchSchema(uri)
+      .then((res) => {
+        return this.setSchema(key, res)
+          .then(() => {
+            return Promise.resolve(res);
+          });
+      });
   }
 }
 
