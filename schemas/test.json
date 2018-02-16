@@ -1,0 +1,5 @@
+{
+  "$schema": "http://json-schema.org/draft-6/schema#",
+  "description": "Test schema",
+  "type": "string"
+}
