@@ -6,7 +6,7 @@
         "enum": [
             "kano-world-admin",
             "kano-world-parent",
-            "kano-world-teatcher",
+            "kano-world-teacher",
             "kano-world-user"
         ]
     }

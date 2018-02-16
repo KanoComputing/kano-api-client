@@ -10,7 +10,6 @@
         "bio": { "type": "string" },
         "createdAt": { "type": "string" },
         "updatedAt": { "type": "string" },
-        "lastActivity": { "type": "string" },
         "roles": {
             "type": "array",
             "items": { "$ref": "common/roles.json" }
