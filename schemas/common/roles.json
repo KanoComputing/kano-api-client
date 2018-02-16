@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "description": "Kano User roles array",
+    "type": "array",
+    "items": {
+        "enum": [
+            "kano-world-admin",
+            "kano-world-parent",
+            "kano-world-teatcher",
+            "kano-world-user"
+        ]
+    }
+}

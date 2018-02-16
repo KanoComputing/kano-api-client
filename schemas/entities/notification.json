@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "description": "Kano Notification Object",
+    "type": "object",
+    "required": [],
+    "properties": {
+        "id": { "$ref": "#/definitions/notificationId" },
+        "userId": { "$ref": "entities/user.json#/definitions/userId" },
+        "title": { "type": "string" },
+        "text": { "type": "string" },
+        "category": { "type": "string" },
+        "type": { "type": "type" },
+        "read": { "type": "boolean" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string" }
+    },
+    "definitions": {
+        "notificationId": {
+            "type": "string"
+        }
+    }
+}
