@@ -1,15 +1,6 @@
-// TODO: Find a way to import `Ajv` here
-
 class Validator {
     constructor() {
-        // TODO: "Fetch" schemas. It's important to solve how to know the path
-        // for the schemas, knowing they will be in a different path when testing
-        // and in different plattforms (Cordova, web, electron)
         this.schemas = [];
-        // TODO: Attach an instance of `Ajv`
-        // TODO: Setup `Ajv` draft
-        // TODO: Register "common" schemas
-        // TODO: Load fetched schemas
     }
     static fetchSchema(uri) {
         if (typeof uri !== 'string') {
@@ -18,7 +9,7 @@ class Validator {
         return fetch(uri)
             .then((res) => {
                 if (!res.ok) {
-                    throw new Error('File not found');
+                    return Promise.reject(new Error('File not found'));
                 }
                 return res.json();
             });
@@ -37,7 +28,7 @@ class Validator {
         return Promise.resolve();
     }
     loadSchemas(key, uri) {
-        return Validator.fetchSchema(uri)
+        return this.fetchSchema(uri)
             .then((res) => {
                 return this.setSchema(key, res)
                     .then(() => {
@@ -45,8 +36,6 @@ class Validator {
                     });
             });
     }
-    // TODO: Implement `validate` like in the `kano-hardware-communication-layer`
-    // but returing a promise instead of boolean
 }
 
 export default Validator;
