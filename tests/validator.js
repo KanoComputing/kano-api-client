@@ -1,4 +1,4 @@
-import Validator from '../validator.js';
+import Validator from '../classes/Validator.js';
 
 const testSchema = {
     $schema: 'http://json-schema.org/draft-6/schema#',
@@ -8,7 +8,7 @@ const testSchema = {
 
 describe('validator', () => {
     it('should instantiate', () => {
-        const validator = new Validator();
+        const validator = new Validator(Ajv);
         expect(validator).to.be.an('object');
         expect(validator).to.be.an(Validator);
     });
@@ -57,7 +57,7 @@ describe('validator', () => {
     });
     // SET SCHEMA
     it('should require a two arguments for `setSchema`', () => {
-        const validator = new Validator();
+        const validator = new Validator(Ajv);
         const schemaName = 'testSchema';
         const shouldFail = [
             validator.setSchema(schemaName)
@@ -81,7 +81,7 @@ describe('validator', () => {
         ]);
     });
     it('should require a string and a json as arguments for `setSchema`', () => {
-        const validator = new Validator();
+        const validator = new Validator(Ajv);
         const shouldFail = [
             validator.setSchema('test', 'test'),
             validator.setSchema('test', () => {}),
@@ -109,20 +109,8 @@ describe('validator', () => {
                 })
         ]);
     });
-    it('should reject if schemas dont exist when calling `setSchema` ', () => {
-        const validator = new Validator();
-        const keyName = 'testKey';
-        delete validator.schemas;
-        return validator.setSchema(keyName, testSchema)
-            .then(() => {
-                throw new Error('Should not resolve');
-            })
-            .catch((error) => {
-                expect(error.message).to.be.equal('Validator is corrupted');
-            });
-    });
     it('should resolve with nothing when calling `setSchema` ', () => {
-        const validator = new Validator();
+        const validator = new Validator(Ajv);
         const keyName = 'testKey';
         return validator.setSchema(keyName, testSchema)
             .then((schema) => {
@@ -131,10 +119,10 @@ describe('validator', () => {
     });
     // LOAD SCHEMA
     it('should resolve with json schema when calling `loadSchemas`', () => {
-        const validator = new Validator();
+        const validator = new Validator(Ajv);
         const uriName = '/schemas/test.json';
         const keyName = 'testKey';
-        return validator.loadSchemas(keyName, uriName)
+        return validator.loadSchema(keyName, uriName)
             .then((schema) => {
                 expect(schema).to.be.eql(testSchema);
             });
