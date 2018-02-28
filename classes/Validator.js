@@ -1,6 +1,7 @@
 class Validator {
     constructor(...args) {
         let Ajv;
+        // Default state
         this.draftPath = '../schemas/json-schema-draft-06.json';
         this.commonsPath = {
             'common/badge': '../schemas/common/badge.json',
@@ -14,15 +15,16 @@ class Validator {
             'remove-user': '../schemas/methods/remove-user.json',
             'update-user': '../schemas/methods/update-user.json'
         };
+        // Override default states with argument
         if (typeof args[0] === 'object') {
             const options = args[0];
-            if (!options.Ajv) {
-                throw new Error('Ajv class is required.');
-            }
             Ajv = options.Ajv;
             this.draftPath = options.draft || this.draftPath;
             this.commonsPath = options.commons || this.commonsPath;
             this.schemasPath = options.schemas || this.schemasPath;
+        }
+        if (!Ajv) {
+            throw new Error('Ajv class is required.');
         }
         this.ajv = new Ajv();
     }
