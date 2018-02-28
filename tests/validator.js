@@ -1,10 +1,12 @@
+/* eslint no-underscore-dangle: ["error", { "allow": ["_schemas"] }] */
+
 import Validator from '../classes/Validator.js';
 import Ajv from '../classes/Ajv.js';
 
 const testSchema = {
-    $schema: 'http://json-schema.org/draft-6/schema#',
+    $schema: 'http://json-schema.org/draft-06/schema#',
     description: 'Test schema',
-    type: 'string'
+    type: 'object'
 };
 
 describe('validator', () => {
@@ -29,7 +31,7 @@ describe('validator', () => {
             Validator.fetchSchema(() => {})
         ];
         const shouldSucceed = [
-            Validator.fetchSchema('/schemas/test.json')
+            Validator.fetchSchema('./test.json')
         ];
 
         return Promise.all([
@@ -56,7 +58,7 @@ describe('validator', () => {
             });
     });
     it('should resolve with the json schema when calling `fetchSchema` ', () => {
-        return Validator.fetchSchema('/schemas/test.json')
+        return Validator.fetchSchema('./test.json')
             .then((schema) => {
                 expect(schema).to.be.eql(testSchema);
             });
@@ -111,12 +113,88 @@ describe('validator', () => {
     // LOAD SCHEMA
     it('should resolve with json schema when calling `loadSchemas`', () => {
         const validator = new Validator({ Ajv });
-        const uriName = '../schemas/test.json';
+        const uri = './test.json';
         const keyName = 'testKey';
-        return validator.loadSchema(keyName, uriName)
+        return validator.loadSchema(keyName, uri)
             .then((schema) => {
                 expect(schema).to.be.eql(testSchema);
                 expect(validator.schemas[keyName]).to.be.eql(testSchema);
+            });
+    });
+    // LOAD DRAFT
+    it('should load draft into schemas', () => {
+        const validator = new Validator({ Ajv });
+        const draftPath = '../schemas/json-schema-draft-06.json';
+        const keyName = 'http://json-schema.org/draft-06/schema';
+        expect(validator.ajv._schemas[keyName]).to.not.be.ok();
+        return validator.loadDraft(draftPath)
+            .then(() => {
+                expect(validator.ajv._schemas[keyName]).to.be.ok();
+            });
+    });
+    // LOAD REFERENCE SCHEMAS
+    it('should load references', () => {
+        const validator = new Validator({ Ajv });
+        const schemaName = 'test2Schema';
+        const test2Schema = {
+            $schema: 'http://json-schema.org/draft-06/schema#',
+            description: 'Test schema',
+            type: 'object',
+            required: ['propertyName'],
+            properties: {
+                propertyName: { $ref: 'common/test.json' }
+            }
+        };
+        const data = { propertyName: {} };
+        return validator.init()
+            .then(() => {
+                return validator.loadCommon('common/test.json', './test.json');
+            })
+            .then(() => {
+                return validator.setSchema(schemaName, test2Schema);
+            })
+            .then(() => {
+                return validator.validate(schemaName, data);
+            });
+    });
+    // VALIDATE
+    it('should fail to validate on an inexistent schema', () => {
+        const validator = new Validator({ Ajv });
+        const schemaName = 'inexistent';
+        const data = {};
+        return validator.init()
+            .then(() => {
+                return validator.validate(schemaName, data)
+                    .catch((error) => {
+                        expect(error.message).to.be.equal('Schema does not exist');
+                    });
+            });
+    });
+    it('should resolve promise when validated', () => {
+        const validator = new Validator({ Ajv });
+        const schemaName = 'testKey';
+        const data = { test: 123 };
+        return validator.init()
+            .then(() => {
+                validator.setSchema(schemaName, testSchema);
+                return validator.validate(schemaName, data);
+            });
+    });
+    it('should reject promise when fail to validate', () => {
+        const validator = new Validator({ Ajv });
+        const schemaName = 'testKey';
+        const data = [1, 2, 3];
+        return validator.init()
+            .then(() => {
+                validator.setSchema(schemaName, testSchema);
+                return validator.validate(schemaName, data);
+            })
+            .then(() => {
+                throw new Error('Should not resolve');
+            })
+            .catch((error) => {
+                expect(error).to.be.ok();
+                expect(error.validation[0].message).to.be.equal('should be object');
             });
     });
 });

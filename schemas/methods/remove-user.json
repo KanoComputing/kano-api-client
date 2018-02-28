@@ -1,5 +1,5 @@
 {
-    "$schema": "http://json-schema.org/draft-6/schema#",
+    "$schema": "http://json-schema.org/draft-06/schema#",
     "description": "Argument passed to `removeUser` method",
     "type": "object",
     "required": [ "params" ],
