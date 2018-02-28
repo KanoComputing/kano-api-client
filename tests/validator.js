@@ -1,4 +1,5 @@
 import Validator from '../classes/Validator.js';
+import Ajv from '../classes/Ajv.js';
 
 const testSchema = {
     $schema: 'http://json-schema.org/draft-6/schema#',
@@ -7,8 +8,13 @@ const testSchema = {
 };
 
 describe('validator', () => {
+    it('should require `Ajv` class', () => {
+        expect(() => {
+            return new Validator();
+        }).to.throwError();
+    });
     it('should instantiate', () => {
-        const validator = new Validator(Ajv);
+        const validator = new Validator({ Ajv });
         expect(validator).to.be.an('object');
         expect(validator).to.be.an(Validator);
     });
@@ -56,33 +62,10 @@ describe('validator', () => {
             });
     });
     // SET SCHEMA
-    it('should require a two arguments for `setSchema`', () => {
-        const validator = new Validator(Ajv);
-        const schemaName = 'testSchema';
-        const shouldFail = [
-            validator.setSchema(schemaName)
-        ];
-        const shouldSucceed = [
-            validator.setSchema(schemaName, testSchema)
-        ];
-        return Promise.all([
-            Promise.all(shouldFail)
-                .then(() => {
-                    throw new Error('Should not resolve');
-                })
-                .catch((err) => {
-                    expect(err).to.be.ok();
-                }),
-            Promise.all(shouldSucceed)
-                .then((response) => {
-                    expect(response).to.be.ok();
-                    expect(validator.schemas[schemaName]).to.be.eql(testSchema);
-                })
-        ]);
-    });
     it('should require a string and a json as arguments for `setSchema`', () => {
-        const validator = new Validator(Ajv);
+        const validator = new Validator({ Ajv });
         const shouldFail = [
+            validator.setSchema('test'),
             validator.setSchema('test', 'test'),
             validator.setSchema('test', () => {}),
             validator.setSchema('test', 123),
@@ -110,21 +93,30 @@ describe('validator', () => {
         ]);
     });
     it('should resolve with nothing when calling `setSchema` ', () => {
-        const validator = new Validator(Ajv);
+        const validator = new Validator({ Ajv });
         const keyName = 'testKey';
         return validator.setSchema(keyName, testSchema)
             .then((schema) => {
-                expect(schema).to.be.eql();
+                expect(schema).to.be(undefined);
+            });
+    });
+    it('should set the schema', () => {
+        const validator = new Validator({ Ajv });
+        const keyName = 'testKey';
+        return validator.setSchema(keyName, testSchema)
+            .then(() => {
+                expect(validator.schemas[keyName]).to.be.eql(testSchema);
             });
     });
     // LOAD SCHEMA
     it('should resolve with json schema when calling `loadSchemas`', () => {
-        const validator = new Validator(Ajv);
-        const uriName = '/schemas/test.json';
+        const validator = new Validator({ Ajv });
+        const uriName = '../schemas/test.json';
         const keyName = 'testKey';
         return validator.loadSchema(keyName, uriName)
             .then((schema) => {
                 expect(schema).to.be.eql(testSchema);
+                expect(validator.schemas[keyName]).to.be.eql(testSchema);
             });
     });
 });
