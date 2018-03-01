@@ -12,6 +12,7 @@ const testSchema = {
 describe('validator', () => {
     it('should require `Ajv` class', () => {
         expect(() => {
+            Ajv = undefined;
             return new Validator();
         }).to.throwError();
     });
@@ -148,7 +149,7 @@ describe('validator', () => {
         const data = { propertyName: {} };
         return validator.init()
             .then(() => {
-                return validator.loadCommon('common/test.json', './test.json');
+                return validator.loadReference('common/test.json', './test.json');
             })
             .then(() => {
                 return validator.setSchema(schemaName, test2Schema);
