@@ -2,7 +2,9 @@ import Ajv from './Ajv.js';
 
 class Validator {
     constructor(...args) {
-        if (!Ajv) {
+        try {
+            this.ajv = new Ajv();
+        } catch (error) {
             throw new Error('Ajv class is required.');
         }
         // Default state
@@ -26,7 +28,6 @@ class Validator {
             this.commonsPath = options.commons || this.commonsPath;
             this.schemasPath = options.schemas || this.schemasPath;
         }
-        this.ajv = new Ajv();
     }
     /**
      * Initializes validator by loading draft, reference and schemas. If the
