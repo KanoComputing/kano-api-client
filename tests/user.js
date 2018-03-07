@@ -1,5 +1,5 @@
-import API from '../api.js';
-import Validator from '../validator.js';
+import API from '../classes/Api.js';
+import Validator from '../classes/Validator.js';
 
 describe('user tests', () => {
     it('should require argument to `getUser`', () => {
