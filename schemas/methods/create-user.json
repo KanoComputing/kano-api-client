@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "description": "Argument passed to `createUser` method",
+    "type": "object",
+    "required": [ "params" ],
+    "properties": {
+        "params": {
+            "allOf": [
+                { "$ref": "entities/user.json" },
+                {
+                    "type": "object",
+                    "required": [
+                        "email",
+                        "username",
+                        "password",
+                        "newsletter"
+                    ],
+                    "properties": {
+                        "password": { "type": "string" },
+                        "newsletter": { "type": "boolean" }
+                    }
+                }
+            ]
+        },
+        "populate": { "type": "object" }
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "description": "Challenge set object",
+    "type": "object",
+    "properties": {
+        "slug": { "type": "string" },
+        "completed": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "all": {
+            "type": "array",
+            "items": { "type": "string" }
+        }
+    }
+}

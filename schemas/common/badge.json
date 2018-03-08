@@ -1,0 +1,12 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "description": "Badge object",
+    "type": "object",
+    "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "criteria": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "unlocked": { "type": "boolean" }
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "description": "Argument passed to `removeUser` method",
+    "type": "object",
+    "required": [ "params" ],
+    "properties": {
+        "params": {
+            "type": "object",
+            "onOf": [
+                {
+                    "type": "object",
+                    "required": [ "username" ],
+                    "properties": {
+                        "username": { "type": "string" }
+                    }
+                },
+                {
+                    "type": "object",
+                    "required": [ "id" ],
+                    "properties": {
+                        "id": { "$ref": "entities/user.json#/userId" }
+                    }
+                }
+            ]
+        },
+        "populate": { "type": "object" }
+    }
+}
