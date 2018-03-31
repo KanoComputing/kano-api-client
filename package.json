@@ -9,7 +9,8 @@
   "author": "Kano Computing",
   "license": "ISC",
   "dependencies": {
-    "ajv": "^6.1.1"
+    "ajv": "^6.1.1",
+    "gun": "github:amark/gun"
   },
   "devDependencies": {
     "eslint": "^4.17.0",
