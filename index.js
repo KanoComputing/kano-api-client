@@ -1,3 +1,7 @@
+if (!window) {
+  var window = {}
+  var Gun = require('gun'); // in NodeJS
+}
 if (!window.Kano) {
   window.Kano = {}
 }
@@ -77,13 +81,13 @@ debugger
       },
       read: args => {
         if (args.populate) {
-          return JSON.parse(JSON.stringify(args.populate), (_, value) =>
+          return JSON.parse(JSON.stringify(args.populate), (_, value) => {
             if (typeof value === 'string' && /[a-z\-\.]*/i.test(value)) {
               return getter(value, args.params)
             } else {
               return value
             }
-          )
+          })
         } else {
           return {}
         }
@@ -93,7 +97,7 @@ debugger
         // TODO map value to Null
         return this.update(args)
       },
-      getUser: args => (
+      getUser: args => {
         return this.read(args)
       },
     }
