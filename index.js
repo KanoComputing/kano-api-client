@@ -1,16 +1,19 @@
 if (!window.Kano) {
-  !window.Kano = {}
+  window.Kano = {}
 }
 window.Kano.APICommunication = settings => {
+  // libraries
+  // var Gun = require('gun'); // in NodeJS
+  const gun = Gun()
   // functions
-  const onIdle = (itime, failAfter) => {
+  const onIdle = (itime, doAfter) => {
     return new Promise((resolve, reject) => {
       var trys = 0
-      var onIdleTest = _ => {
-        var t = performance.now()
+      const onIdleTest = _ => {
+        const t = performance.now()
         setTimeout( _ => { 
-          if (failAfter && trys++ > failAfter) {
-            reject()
+          if (doAfter && trys++ > doAfter) {
+            resolve()
           }
           if (Math.round(performance.now() - t) === Math.round(itime)) {
             resolve()
@@ -22,9 +25,7 @@ window.Kano.APICommunication = settings => {
       onIdleTest()
     })
   }
-  const gun = Gun()
-
-  const getter = query => {
+  const getter = (query,params) => {
     return new Promise((resolve, reject) => {
       query.split(".").reduce((db,val) => {
         return db.get(val)
@@ -45,7 +46,7 @@ debugger
       })
     })
   }
-  const setter = (query, valueToSet) => {
+  const setter = (query, valueToSet, params) => {
     var oldValue
     var newValue
     return getter(query).then(data => {
@@ -74,7 +75,19 @@ debugger
       create: args => {
         return this.update(args)
       },
-      read:    _ => {},
+      read: args => {
+        if (args.populate) {
+          return JSON.parse(JSON.stringify(args.populate), (_, value) =>
+            if (typeof value === 'string' && /[a-z\-\.]*/i.test(value)) {
+              return getter(value, args.params)
+            } else {
+              return value
+            }
+          )
+        } else {
+          return {}
+        }
+      },
       update:  _ => {},
       delete: args => {
         // TODO map value to Null
