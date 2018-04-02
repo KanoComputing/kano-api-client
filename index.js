@@ -36,7 +36,7 @@ window.Kano.APICommunication = settings => {
     return new Promise((resolve, reject) => {
       query.split(".").reduce((db,val) => {
         return db.get(val)
-      }, gun).val(data => {
+      }, gun).once(data => {
         if (data === undefined) { 
 debugger
           // fetch data
