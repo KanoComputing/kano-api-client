@@ -1,13 +1,16 @@
 if (!window) {
   var window = {}
   var Gun = require('gun'); // in NodeJS
+} else {
+  var script = document.createElement("script"); // Make a script DOM node
+  script.src = "./node_modules/gun/gun.js"
+  document.head.appendChild(script)
 }
 if (!window.Kano) {
   window.Kano = {}
 }
 window.Kano.APICommunication = settings => {
   // libraries
-  // var Gun = require('gun'); // in NodeJS
   const gun = Gun()
   // functions
   const onIdle = (itime, doAfter) => {
@@ -92,13 +95,19 @@ debugger
           return {}
         }
       },
-      update:  _ => {},
+      update: args => {
+        Object.keys(args.params).forEach(key => {
+          setter(key, args.params[key])
+        })
+        this.update(args)
+      },
       delete: args => {
         // TODO map value to Null
         return this.update(args)
       },
       getUser: args => {
-        return this.read(args)
+        //TODO test if update okay
+        return this.read({params:{user: args.params}, populate: args.populate})
       },
     }
   } else {
