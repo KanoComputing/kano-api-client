@@ -13,25 +13,6 @@ window.Kano.APICommunication = settings => {
   // libraries
   const gun = Gun()
   // functions
-  const onIdle = (itime, doAfter) => {
-    return new Promise((resolve, reject) => {
-      var trys = 0
-      const onIdleTest = _ => {
-        const t = performance.now()
-        setTimeout( _ => { 
-          if (doAfter && trys++ > doAfter) {
-            resolve()
-          }
-          if (Math.round(performance.now() - t) === Math.round(itime)) {
-            resolve()
-          } else {
-            onIdleTest()
-          }
-        }, itime)
-      }
-      onIdleTest()
-    })
-  }
   const getter = (query,params) => {
     return new Promise((resolve, reject) => {
       query.split(".").reduce((db,val) => {
@@ -40,13 +21,15 @@ window.Kano.APICommunication = settings => {
         if (data === undefined) { 
 debugger
           // fetch data
-          data = "demo data not fetched : " + query
+          data = "demo data iFAKE not fetched:" + query
+          // Make starterKit.json
+          // TODO interface with the API
           // save all data returned
           query.split(".").reduce((db,val) => {
             return db.get(val)
           }, gun).put(data)
         }
-        // if (time to update) {  
+        // if (time to update) {
         
         // }
         resolve(data)
@@ -71,25 +54,46 @@ debugger
         // add to postList
         console.log("push to server", newValue)
       } else {
-        console.log("Do not push", newValue)
+        console.log("In sync", newValue)
       }
     }).then( _ => {
       return newValue
     })
   }
+  const onIdle = (itime, doAfter) => {
+    return new Promise((resolve, reject) => {
+      var trys = 0
+      const onIdleTest = _ => {
+        const t = performance.now()
+        setTimeout( _ => { 
+          if (doAfter && trys++ > doAfter) {
+            resolve()
+          }
+          if (Math.round(performance.now() - t) === Math.round(itime)) {
+            resolve()
+          } else {
+            onIdleTest()
+          }
+        }, itime)
+      }
+      onIdleTest()
+    })
+  }
   if (settings && settings.worldUrl) {
-    return {
+    const API = {
       create: args => {
-        return this.update(args)
+        return API.update(args)
       },
       read: args => {
         if (args.populate) {
-          return JSON.parse(JSON.stringify(args.populate), (_, value) => {
-            if (typeof value === 'string' && /[a-z\-\.]*/i.test(value)) {
-              return getter(value, args.params)
-            } else {
-              return value
-            }
+          return new Promise((resolve, reject) => {
+            return resolve(JSON.parse(JSON.stringify(args.populate), (_, value) => {
+              if (typeof value === 'string' && /[a-z\-\.]*/i.test(value)) {
+                return getter(value, args.params)
+              } else {
+                return value
+              }
+            }))
           })
         } else {
           return {}
@@ -99,17 +103,18 @@ debugger
         Object.keys(args.params).forEach(key => {
           setter(key, args.params[key])
         })
-        this.update(args)
+        return API.read(args)
       },
       delete: args => {
         // TODO map value to Null
-        return this.update(args)
+        return API.update(args)
       },
       getUser: args => {
         //TODO test if update okay
-        return this.read({params:{user: args.params}, populate: args.populate})
+        return API.read({params:{user: args.params}, populate: args.populate})
       },
     }
+    return API
   } else {
     console.error("Need a worldUrl")
   }
