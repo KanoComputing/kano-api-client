@@ -131,7 +131,7 @@ debugger
         return API.read({params:{user: args.params}, populate: args.populate})
       },
       login: args => {
-        return poster(args.params).then(_ => {
+        return poster(args.params,"/auth/login").then(_ => {
           return API.read(args)
         }).catch(err => {
           console.error("error login in :", err)
