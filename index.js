@@ -85,6 +85,10 @@ debugger
     data.append( "json", JSON.stringify( payload ) );
 
     return fetch(settings.worldUrl + path, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
       method: "POST",
       body: data
     }).then(function(res){ 
