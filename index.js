@@ -82,6 +82,7 @@ debugger
   const poster = (payload, path) => {
     return fetch(settings.worldUrl + path, {
       headers: {
+        'Access-Control-Allow-Origin': '*',
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
