@@ -87,9 +87,13 @@ debugger
       read: args => {
         if (args.populate) {
           return new Promise((resolve, reject) => {
-            return resolve(JSON.parse(JSON.stringify(args.populate), (_, value) => {
+            return resolve(JSON.parse(JSON.stringify(args.populate), async (_, value) => {
               if (typeof value === 'string' && /[a-z\-\.]*/i.test(value)) {
-                return getter(value, args.params)
+                if (settings.resolve) {
+                  return await getter(value, args.params)
+                } else {
+                  return getter(value, args.params)
+                }
               } else {
                 return value
               }
