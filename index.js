@@ -80,9 +80,8 @@ debugger
     })
   }
   const poster = (payload, path) => {
-
-    var data = new FormData();
-    data.append( "json", JSON.stringify( payload ) );
+    var data = new FormData()
+    data.append( "json", JSON.stringify( payload ) )
 
     return fetch(settings.worldUrl + path, {
       headers: {
