@@ -79,6 +79,19 @@ debugger
       onIdleTest()
     })
   }
+  const poster = (payload, path) => {
+
+    var data = new FormData();
+    data.append( "json", JSON.stringify( payload ) );
+
+    return fetch(settings.worldUrl + path, {
+      method: "POST",
+      body: data
+    }).then(function(res){ 
+      return res.json()
+    })
+  }
+
   if (settings && settings.worldUrl) {
     const API = {
       create: args => {
