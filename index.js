@@ -82,7 +82,6 @@ debugger
   const poster = (payload, path) => {
     return new Promise((resolve, reject) => {
       var xhr = new XMLHttpRequest();
-      xhr.withCredentials = true;
 
       xhr.addEventListener("readystatechange", function () {
         if (this.readyState === 4) {
@@ -90,10 +89,13 @@ debugger
         }
       })
 
-      xhr.open("POST", settings.worldUrl + path);
-      xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded");
-      xhr.setRequestHeader("accept", "application/json");
-      xhr.setRequestHeader("cache-control", "no-cache");
+      xhr.open("POST", settings.worldUrl + path)
+
+      xhr.setRequestHeader('Accept', 'application/json')
+      xhr.setRequestHeader('Content-Type', 'application/json')
+      xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded")
+      xhr.setRequestHeader("accept", "application/json")
+      xhr.setRequestHeader("cache-control", "no-cache")
       
       xhr.send(JSON.stringify( payload ))
     })
