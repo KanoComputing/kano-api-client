@@ -85,7 +85,11 @@ debugger
 
       xhr.addEventListener("readystatechange", function () {
         if (this.readyState === 4) {
-          resolve(this.responseText)
+          if (this.responseText) {
+            resolve(this.responseText)
+          } else {
+            reject()
+          }
         }
       })
 
@@ -140,6 +144,7 @@ debugger
       login: args => {
         return poster(args.params,"/auth/login").then( res => {
           console.log(res)
+          console.log(JSON.parse(atob(JSON.parse(res).data.token.split(".")[1])))
           return API.read(args)
         }).catch(err => {
           console.error("error login in :", err)
