@@ -195,7 +195,7 @@ window.Kano.APICommunication = settings => {
       },
       login: args => {
         return sha256(JSON.stringify(args.params)).then(localToken => {
-          crypto.subtle.importKey("raw", localToken, {name: "AES-CBC"}, false, ["encrypt", "decrypt"]).then(function(e){
+          crypto.subtle.importKey("raw", str2ab(localToken), {name: "AES-CBC"}, false, ["encrypt", "decrypt"]).then(function(e){
             // if encrypted data decrypt it
             console.log(e)
           }).then( _ => {
