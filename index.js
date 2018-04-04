@@ -113,24 +113,8 @@ window.Kano.APICommunication = settings => {
   // We transform the string into an arraybuffer.
     var buffer = new TextEncoder('utf-8').encode(str)
     return crypto.subtle.digest('SHA-256', buffer).then(function (hash) {
-      return hex(hash)
+      return hash
     })
-  }
-  function hex (buffer) {
-    var hexCodes = []
-    var view = new DataView(buffer)
-    for (var i = 0; i < view.byteLength; i += 4) {
-    // Using getUint32 reduces the number of iterations needed (we process 4 bytes each time)
-      var value = view.getUint32(i)
-    // toString(16) will give the hex representation of the number without padding
-      var stringValue = value.toString(16)
-    // We use concatenation and slice for padding
-      var padding = '00000000'
-      var paddedValue = (padding + stringValue).slice(-padding.length)
-      hexCodes.push(paddedValue)
-    }
-  // Join all the hex strings into one
-    return hexCodes.join('')
   }
   function ab2str (buf) {
     return String.fromCharCode.apply(null, new Uint16Array(buf))
@@ -194,11 +178,15 @@ window.Kano.APICommunication = settings => {
         return API.read({params:{user: args.params}, populate: args.populate})
       },
       login: args => {
-        return sha256(JSON.stringify(args.params)).then(localToken => {
-          crypto.subtle.importKey("raw", base64ToArrayBuffer(localToken), {name: "AES-CBC"}, false, ["encrypt", "decrypt"]).then(function(e){
+        return sha256(JSON.stringify(args.params)).then(localhash => {
+          crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"]).then(function(key){
             // if encrypted data decrypt it
-            console.log(e)
-          }).then( _ => {
+            return crypto.subtle.exportKey("jwk",key).then(function(keydata){
+              //returns the exported key data
+                console.log(keydata)
+                return keydata.k // save the hard bit
+            })
+          }).then( localToken => {
             // else if
             return poster(args.params,"/auth/login").then( res => {
               var token = JSON.parse(res).data.token
