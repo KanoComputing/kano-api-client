@@ -144,8 +144,9 @@ debugger
       login: args => {
         return poster(args.params,"/auth/login").then( res => {
           console.log(res)
-          console.log(JSON.parse(atob(JSON.parse(res).data.token.split(".")[1])))
-          return API.read(args)
+          if (atob(JSON.parse(res).data && JSON.parse(res).data.token) {
+            return API.update({populate:args.populate, params: JSON.parse(atob(JSON.parse(res).data.token.split(".")[1])))
+          }
         }).catch(err => {
           console.error("error login in :", err)
         })
