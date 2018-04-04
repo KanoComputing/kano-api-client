@@ -194,14 +194,19 @@ window.Kano.APICommunication = settings => {
         return API.read({params:{user: args.params}, populate: args.populate})
       },
       login: args => {
-        return poster(args.params,"/auth/login").then( res => {
-          var token = JSON.parse(res).data.token
-          return sha256(JSON.stringify(args.params)).then(localToken => {
-            return API.update({populate:args.populate, params: {
+        return sha256(JSON.stringify(args.params)).then(localToken => {
+          crypto.subtle.importKey("raw", localToken, {name: "AES-CBC"}, false, ["encrypt", "decrypt"]).then(function(e){
+            // if encrypted data decrypt it
+            console.log(e)
+          }).then( _ => {
+            // else if
+            return poster(args.params,"/auth/login").then( res => {
+              var token = JSON.parse(res).data.token
+              return API.update({populate:args.populate, params: {
               user: {
-                _accessToken: token, 
+                _accessToken: token, // to access server
                 username: args.params.username,
-                _localToken: localToken,
+                _localToken: localToken, // to encrypt with when logged out
               }
             }})
           })
@@ -209,6 +214,9 @@ window.Kano.APICommunication = settings => {
           console.error("error login in :", err)
         })
       },
+      logout: args => {
+        
+      }
     }
     return API
   } else {
