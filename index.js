@@ -150,11 +150,8 @@ window.Kano.APICommunication = settings => {
       },
       login: args => {
         return poster(args.params,"/auth/login").then( res => {
-          console.log(res)
-          var token
-          if (JSON.parse(res).data && token = JSON.parse(res).data.token) {
-            return API.update({populate:args.populate, params: {user: {accessToken: token, username: args.params.username}}})
-          }
+          var token = JSON.parse(res).data.token
+          return API.update({populate:args.populate, params: {user: {accessToken: token, username: args.params.username}}})
         }).catch(err => {
           console.error("error login in :", err)
         })
