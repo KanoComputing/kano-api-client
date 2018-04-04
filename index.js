@@ -39,6 +39,11 @@ window.Kano.APICommunication = settings => {
     })
   }
   const setter = (query, valueToSet, params) => {
+    if (Array.isArray(valueToSet)) {
+      valueToSet = valueToSet.reduce((accumulator, currentValue, currentIndex) => {
+        accumulator[currentIndex] = currentValue
+      },{})
+    }
     var oldValue
     var newValue
     return getter(query).then(data => {
