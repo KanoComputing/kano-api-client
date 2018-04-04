@@ -203,12 +203,13 @@ window.Kano.APICommunication = settings => {
             return poster(args.params,"/auth/login").then( res => {
               var token = JSON.parse(res).data.token
               return API.update({populate:args.populate, params: {
-              user: {
-                _accessToken: token, // to access server
-                username: args.params.username,
-                _localToken: localToken, // to encrypt with when logged out
-              }
-            }})
+                user: {
+                  _accessToken: token, // to access server
+                  username: args.params.username,
+                  _localToken: localToken, // to encrypt with when logged out
+                }
+              }})
+            })
           })
         }).catch(err => {
           console.error("error login in :", err)
