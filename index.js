@@ -57,9 +57,9 @@ window.Kano.APICommunication = settings => {
         newValue = data
       })
     }).then( _ => {
-      if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+      if (oldValue ==! undefined && JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
         // add to postList
-        console.log("push to server", newValue)
+        console.log("needs sync", newValue)
       } else {
         console.log("In sync", newValue)
       }
