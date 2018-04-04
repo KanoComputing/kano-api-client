@@ -196,14 +196,15 @@ window.Kano.APICommunication = settings => {
       login: args => {
         return poster(args.params,"/auth/login").then( res => {
           var token = JSON.parse(res).data.token
-          var localToken = sha256(JSON.stringify(args.params))
-          return API.update({populate:args.populate, params: {
-            user: {
-              accessToken: token, 
-              username: args.params.username,
-              localToken: localToken,
-            }
-          }})
+          return sha256(JSON.stringify(args.params)).then(localToken => {
+            return API.update({populate:args.populate, params: {
+              user: {
+                accessToken: token, 
+                username: args.params.username,
+                localToken: localToken,
+              }
+            }})
+          })
         }).catch(err => {
           console.error("error login in :", err)
         })
