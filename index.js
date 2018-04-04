@@ -13,21 +13,23 @@ window.Kano.APICommunication = settings => {
   // libraries
   const gun = Gun()
   // functions
-  const getter = (query,params) => {
+  const getter = (query,params,sync) => {
     return new Promise((resolve, reject) => {
       query.split(".").reduce((db,val) => {
         return db.get(val)
       }, gun).once(data => {
         if (data === undefined) { 
-debugger
           // fetch data
-          data = "demo data iFAKE not fetched:" + query
+          if (sync) {
+            data = "demo data iFAKE not fetched:" + query
+            query.split(".").reduce((db,val) => {
+              return db.get(val)
+            }, gun).put(data)
+          }
+
           // Make starterKit.json
           // TODO interface with the API
           // save all data returned
-          query.split(".").reduce((db,val) => {
-            return db.get(val)
-          }, gun).put(data)
         }
         // if (time to update) {
         
