@@ -80,16 +80,22 @@ debugger
     })
   }
   const poster = (payload, path) => {
-    return fetch(settings.worldUrl + path, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      method: "POST",
-      body: JSON.stringify( payload )
-    }).then(function(res){ 
-      return res.json()
+    return new Promise((resolve, reject) => {
+      var xhr = new XMLHttpRequest();
+      xhr.withCredentials = true;
+
+      xhr.addEventListener("readystatechange", function () {
+        if (this.readyState === 4) {
+          resolve(this.responseText)
+        }
+      })
+
+      xhr.open("POST", settings.worldUrl + path);
+      xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded");
+      xhr.setRequestHeader("accept", "application/json");
+      xhr.setRequestHeader("cache-control", "no-cache");
+      
+      xhr.send(JSON.stringify( payload ))
     })
   }
 
@@ -132,12 +138,13 @@ debugger
         return API.read({params:{user: args.params}, populate: args.populate})
       },
       login: args => {
-        return poster(args.params,"/auth/login").then(_ => {
+        return poster(args.params,"/auth/login").then( res => {
+          console.log(res)
           return API.read(args)
         }).catch(err => {
           console.error("error login in :", err)
         })
-      }
+      },
     }
     return API
   } else {
