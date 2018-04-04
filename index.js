@@ -199,9 +199,9 @@ window.Kano.APICommunication = settings => {
           return sha256(JSON.stringify(args.params)).then(localToken => {
             return API.update({populate:args.populate, params: {
               user: {
-                accessToken: token, 
+                _accessToken: token, 
                 username: args.params.username,
-                localToken: localToken,
+                _localToken: localToken,
               }
             }})
           })
