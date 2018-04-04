@@ -93,8 +93,6 @@ debugger
 
       xhr.setRequestHeader('Accept', 'application/json')
       xhr.setRequestHeader('Content-Type', 'application/json')
-      xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded")
-      xhr.setRequestHeader("accept", "application/json")
       xhr.setRequestHeader("cache-control", "no-cache")
       
       xhr.send(JSON.stringify( payload ))

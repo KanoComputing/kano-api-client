@@ -1,8 +1,8 @@
-var API = window.Kano.APICommunication({worldUrl:"https://ksworldapi-dev.us-west-1.elasticbeanstalk.com",resolve:true})
+var API = window.Kano.APICommunication({worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",resolve:true})
 API.login({
   params: {
     username: "nectarsoft",
-	  password: "Chupand0nectar",
+    password: "Chupand0nectar",
   },
   populate:{
     id: "user.id",
