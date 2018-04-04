@@ -1,4 +1,4 @@
-var API = window.Kano.APICommunication({worldUrl:"172.168.86.10:8888",resolve:true})
+var API = window.Kano.APICommunication({worldUrl:"https://ksworldapi-dev.us-west-1.elasticbeanstalk.com",resolve:true})
 API.login({
   params: {
     username: "nectarsoft",
@@ -7,10 +7,10 @@ API.login({
   populate:{
     id: "user.id",
   }
-).then(user => {
+}).then(user => {
   console.log(user)  
 }).catch(err => {
   console.error(err)
 })
 
-API.read({populate:{Name:"user.username"}}).then(console.log)
+API.read({populate:{fo:"user",Name:"user.username"}}).then(console.log)
