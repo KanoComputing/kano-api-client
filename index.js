@@ -183,8 +183,8 @@ window.Kano.APICommunication = settings => {
             // if encrypted data decrypt it
             return crypto.subtle.exportKey("jwk",key).then(function(keydata){
               //returns the exported key data
-                console.log(keydata)
-                return keydata.k // save the hard bit
+              console.log(keydata)
+              return keydata.k // save the hard bit
             })
           }).then( localToken => {
             // else if
