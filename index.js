@@ -11,9 +11,9 @@ if (!window.Kano) {
 }
 window.Kano.APICommunication = settings => {
   // libraries
-  const gun = Gun()
+  var gun = Gun()
   // functions
-  const getter = (query,params,sync) => {
+  function getter(query,params,sync){
     return new Promise((resolve, reject) => {
       query.split(".").reduce((db,val) => {
         return db.get(val)
@@ -38,7 +38,7 @@ window.Kano.APICommunication = settings => {
       })
     })
   }
-  const setter = (query, valueToSet, params) => {
+  function setter(query, valueToSet, params) {
     if (Array.isArray(valueToSet)) {
       valueToSet = valueToSet.reduce((accumulator, currentValue, currentIndex) => {
         accumulator[currentIndex] = currentValue
@@ -67,7 +67,7 @@ window.Kano.APICommunication = settings => {
       return newValue
     })
   }
-  const onIdle = (itime, doAfter) => {
+  function onIdle(itime, doAfter) {
     return new Promise((resolve, reject) => {
       var trys = 0
       const onIdleTest = _ => {
@@ -86,7 +86,7 @@ window.Kano.APICommunication = settings => {
       onIdleTest()
     })
   }
-  const poster = (payload, path) => {
+  function poster(payload, path) {
     return new Promise((resolve, reject) => {
       var xhr = new XMLHttpRequest();
 
@@ -109,7 +109,52 @@ window.Kano.APICommunication = settings => {
       xhr.send(JSON.stringify( payload ))
     })
   }
-
+  function sha256 (str) {
+  // We transform the string into an arraybuffer.
+    var buffer = new TextEncoder('utf-8').encode(str)
+    return crypto.subtle.digest('SHA-256', buffer).then(function (hash) {
+      return hex(hash)
+    })
+  }
+  function hex (buffer) {
+    var hexCodes = []
+    var view = new DataView(buffer)
+    for (var i = 0; i < view.byteLength; i += 4) {
+    // Using getUint32 reduces the number of iterations needed (we process 4 bytes each time)
+      var value = view.getUint32(i)
+    // toString(16) will give the hex representation of the number without padding
+      var stringValue = value.toString(16)
+    // We use concatenation and slice for padding
+      var padding = '00000000'
+      var paddedValue = (padding + stringValue).slice(-padding.length)
+      hexCodes.push(paddedValue)
+    }
+  // Join all the hex strings into one
+    return hexCodes.join('')
+  }
+  function ab2str (buf) {
+    return String.fromCharCode.apply(null, new Uint16Array(buf))
+  }
+  function str2ab (str) {
+    var buf = new ArrayBuffer(str.length * 2) // 2 bytes for each char
+    var bufView = new Uint16Array(buf)
+    for (var i = 0, strLen = str.length; i < strLen; i++) {
+      bufView[i] = str.charCodeAt(i)
+    }
+    return buf
+  }
+  function arrayToBase64String (ab) {
+    var dView = new Uint8Array(ab)   // Get a byte view
+    var arr = Array.prototype.slice.call(dView) // Create a normal array
+    var arr1 = arr.map(function (item) {
+      return String.fromCharCode(item)    // Convert
+    })
+    return window.btoa(arr1.join(''))  // Form a string
+  }
+  function base64ToArrayBuffer (s) {
+    var asciiString = window.atob(s)
+    return new Uint8Array([...asciiString].map(char => char.charCodeAt(0)))
+  }
   if (settings && settings.worldUrl) {
     const API = {
       create: args => {
@@ -151,7 +196,14 @@ window.Kano.APICommunication = settings => {
       login: args => {
         return poster(args.params,"/auth/login").then( res => {
           var token = JSON.parse(res).data.token
-          return API.update({populate:args.populate, params: {user: {accessToken: token, username: args.params.username}}})
+          var localToken = sha256(JSON.stringify(args.params))
+          return API.update({populate:args.populate, params: {
+            user: {
+              accessToken: token, 
+              username: args.params.username,
+              localToken: localToken,
+            }
+          }})
         }).catch(err => {
           console.error("error login in :", err)
         })
