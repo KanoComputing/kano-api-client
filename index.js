@@ -18,7 +18,10 @@ window.Kano.APICommunication = settings => {
       query.split(".").reduce((db,val) => {
         return db.get(val)
       }, gun).once(data => {
-        if (data === undefined) { 
+        if (data === undefined) {
+          if (query === "user.id" || query === "user.joined" || ) {
+            getDataFromServer("/users/me").then(console.log)
+          } 
           // fetch data
           if (sync) {
             data = "demo data iFAKE not fetched:" + query
@@ -84,6 +87,29 @@ window.Kano.APICommunication = settings => {
         }, itime)
       }
       onIdleTest()
+    })
+  }
+  
+  function getDataFromServer(path) {
+    return new Promise((resolve, reject) => {
+      getter("user.accessToken").then(accessToken => {
+        var xhr = new XMLHttpRequest();
+
+        xhr.addEventListener("readystatechange", function () {
+          if (this.readyState === 4) {
+            if (this.responseText) {
+              resolve(this.responseText)
+            } else {
+              reject()
+            }
+          }
+        })
+        xhr.open("GET", "http://ksworldapi-dev.us-west-1.elasticbeanstalk.com/"+path)
+        xhr.setRequestHeader("content-type", "application/json")
+        xhr.setRequestHeader("accept", "application/json")
+        xhr.setRequestHeader("authorization", "Bearer "+accessToken)
+        xhr.send()
+      })
     })
   }
   function poster(payload, path) {
@@ -225,6 +251,7 @@ window.Kano.APICommunication = settings => {
                 },key, str2ab(localStorage.getItem("gun/")) // TODO get all data and clear
               ).then(encrypted => {
                 sha256(user.username).then(userSHA => { 
+                  
                   localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted))
                 })
               }).catch(function(err){
