@@ -210,7 +210,7 @@ window.Kano.APICommunication = settings => {
           crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"]).then(function(key){
             sha256(args.params.username).then(userSHA => {
               var data = localStorage.getItem(arrayToBase64String(userSHA))
-              var vi = str2ab(localStorage.getItem(arrayToBase64String(userSHA)+"iv"))
+              var iv = str2ab(localStorage.getItem(arrayToBase64String(userSHA)+"iv"))
               if (data) {
                 window.crypto.subtle.decrypt(
                   {
