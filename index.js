@@ -20,7 +20,7 @@ window.Kano.APICommunication = settings => {
       }, gun).once(data => {
         if (data === undefined) {
           if (query === "user.id" || query === "user.joined" || query === "user.avatar") {
-            getDataFromServer("/users/me").then(console.log)
+            getDataFromServer("users/me").then(console.log)
           }
           // fetch data
           if (sync) {
