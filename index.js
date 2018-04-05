@@ -92,7 +92,7 @@ window.Kano.APICommunication = settings => {
   
   function getDataFromServer(path) {
     return new Promise((resolve, reject) => {
-      getter("user.accessToken").then(accessToken => {
+      getter("user._accessToken").then(accessToken => {
         var xhr = new XMLHttpRequest();
         xhr.withCredentials = true
 
