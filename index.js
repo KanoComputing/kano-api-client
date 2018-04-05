@@ -19,7 +19,7 @@ window.Kano.APICommunication = settings => {
         return db.get(val)
       }, gun).once(data => {
         if (data === undefined) {
-          if (query === "user.id" || query === "user.joined" || query === "user.avatar") {
+          if (query.startsWith("user.")) {
             var user = gun.get("user")
             getDataFromServer("/users/me").then(serverRes => { 
               serverData = JSON.parse(serverRes, (key, value) => {
@@ -33,33 +33,19 @@ window.Kano.APICommunication = settings => {
               Object.keys(serverData.data).map( key => {
                 user.get(key.replace("_","")).put(serverData[key])
               })
-              if (query === "user.id") {
-                data = serverData._id
-              }
-              if (query === "user.joined") {
-                data = serverData.joined
-              }
-              if (query === "user.avatar") {
-                data = serverData.avatar
-              }
+            }).then( _ => {
+              query.split(".").reduce((db,val) => {
+                return db.get(val)
+              }, gun).once( retry => {
+                data = retry
+              })
+            }).then( _ => {
+              resolve(data)
             })
-          }
-          // fetch data
-          if (sync) {
-            data = "demo data iFAKE not fetched:" + query
-            query.split(".").reduce((db,val) => {
-              return db.get(val)
-            }, gun).put(data)
-          }
-
-          // Make starterKit.json
-          // TODO interface with the API
-          // save all data returned
+          } 
+        } else {
+          resolve(data)
         }
-        // if (time to update) {
-        
-        // }
-        resolve(data)
       })
     })
   }
