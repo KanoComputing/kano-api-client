@@ -266,7 +266,7 @@ window.Kano.APICommunication = settings => {
               window.crypto.subtle.encrypt(
                 {
                   name: "AES-CBC",
-                  iv: iv),
+                  iv: iv,
                 },key, str2ab(localStorage.getItem("gun/")) // TODO get all data and clear
               ).then(encrypted => {
                 sha256(user.username).then(userSHA => { 
