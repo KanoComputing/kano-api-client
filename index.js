@@ -25,7 +25,7 @@ window.Kano.APICommunication = settings => {
               serverData = JSON.parse(serverRes)
               Object.keys(serverData).map( key => {
                 user.get(key.replace("_","")).put(serverData[key])
-              }
+              })
               if (query === "user.id") {
                 data = serverData._id
               }
