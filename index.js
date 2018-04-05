@@ -219,7 +219,7 @@ window.Kano.APICommunication = settings => {
                   key, //from generateKey or importKey above
                   str2ab(data) //ArrayBuffer of the data
                 ).then(function(decrypted){
-                  console.log(ab2str(decrypted))
+                  localStorage.setItem('gun/','{"'+ ab2str(decrypted).split('{"').slice(1).join('{"'))
                 }).catch(function(err){
                   console.error(err)
                 })
@@ -271,6 +271,7 @@ window.Kano.APICommunication = settings => {
               ).then(encrypted => {
                 sha256(user.username).then(userSHA => { 
                   localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted))
+                  localStorage.removeItem('gun/')
                 })
               }).catch(function(err){
                 console.error(err)
