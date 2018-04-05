@@ -205,15 +205,32 @@ window.Kano.APICommunication = settings => {
         })
       },
       logout: args => {
-        
-        var key = {
-          alg:"A256CBC",
-          ext:true,
-          k: localToken,
-          key_ops:["encrypt", "decrypt"],
-          kty:"oct",
-        }
-        
+        getter("user._localToken").then(async localToken => {
+          if (await localToken) {
+            window.crypto.subtle.importKey("jwk", {  
+                kty: "oct",
+                k: localToken,
+                alg: "A256CBC",
+                ext: true,
+              },{ 
+                name: "AES-CBC",
+              },false, ["encrypt", "decrypt"]
+            ).then(key => {
+              window.crypto.subtle.encrypt(
+                {
+                  name: "AES-CBC",
+                  iv: window.crypto.getRandomValues(new Uint8Array(16)),
+                },key, str2ab("hi bob love alice") // TODO get all data and clear
+              ).then(encrypted => {
+                console.log(ab2str(encrypted));
+              }).catch(function(err){
+                console.error(err)
+              })
+            })
+          }
+        }).catch(err => {
+          console.error(err)
+        })
       }
     }
     return API
