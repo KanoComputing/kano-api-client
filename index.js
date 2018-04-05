@@ -20,7 +20,22 @@ window.Kano.APICommunication = settings => {
       }, gun).once(data => {
         if (data === undefined) {
           if (query === "user.id" || query === "user.joined" || query === "user.avatar") {
-            getDataFromServer("/users/me").then(console.log)
+            var user = db.get("user")
+            getDataFromServer("/users/me").then(serverRes => { 
+              serverData = JSON.parse(serverRes)
+              Object.keys(serverData).map( key => {
+                user.get(key.replace("_","")).put(serverData[key])
+              }
+              if (query === "user.id") {
+                data = serverData._id
+              }
+              if (query === "user.joined") {
+                data = serverData.joined
+              }
+              if (query === "user.avatar") {
+                data = serverData.avatar
+              }
+            }))
           }
           // fetch data
           if (sync) {
