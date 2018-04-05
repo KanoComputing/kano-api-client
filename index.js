@@ -215,7 +215,7 @@ window.Kano.APICommunication = settings => {
                 window.crypto.subtle.decrypt(
                   {
                     name: "AES-CBC",
-                    iv: ArrayBuffer(16) // iv, //The initialization vector you used to encrypt
+                    iv: window.crypto.getRandomValues(new Uint8Array(16)) // iv, //The initialization vector you used to encrypt
                   },
                   key, //from generateKey or importKey above
                   str2ab(data) //ArrayBuffer of the data
