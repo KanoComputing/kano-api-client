@@ -225,7 +225,7 @@ window.Kano.APICommunication = settings => {
                 },key, str2ab(localStorage.getItem("gun/")) // TODO get all data and clear
               ).then(encrypted => {
                 sha256(user.username).then(userSHA => { 
-                  localStorage.setItem(ab2str(userSHA), ab2str(encrypted))
+                  localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted))
                 })
               }).catch(function(err){
                 console.error(err)
