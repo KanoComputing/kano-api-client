@@ -13,6 +13,20 @@ API.login({
   console.error(err)
 })
 
-API.read({populate:{fo:"user",Name:"user.username"}}).then(console.log)
+setTimeout( _ => {API.logout()}, 5000)
 
-setTimeout( _ => {API.logout()}, 10000)
+setTimeout( _ => {
+  API.login({
+    params: {
+      username: "nectarsoft",
+      password: "Chupand0nectar",
+    },
+    populate:{
+      id: "user.id",
+    }
+  }).then(user => {
+    console.log(user)
+  }).catch(err => {
+    console.error(err)
+  })
+}, 10000)
