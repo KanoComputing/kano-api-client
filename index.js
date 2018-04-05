@@ -19,9 +19,9 @@ window.Kano.APICommunication = settings => {
         return db.get(val)
       }, gun).once(data => {
         if (data === undefined) {
-          if (query === "user.id" || query === "user.joined" || ) {
+          if (query === "user.id" || query === "user.joined" || query === "user.avatar") {
             getDataFromServer("/users/me").then(console.log)
-          } 
+          }
           // fetch data
           if (sync) {
             data = "demo data iFAKE not fetched:" + query
