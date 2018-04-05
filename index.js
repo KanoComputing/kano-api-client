@@ -204,8 +204,13 @@ window.Kano.APICommunication = settings => {
         })
       },
       logout: args => {
-        
-      }
+        var key = {
+          alg:"A256CBC",
+          ext:true,
+          k: localToken,
+          key_ops:["encrypt", "decrypt"],
+          kty:"oct",
+        }
     }
     return API
   } else {
