@@ -31,7 +31,7 @@ window.Kano.APICommunication = settings => {
                 return value
               })
               Object.keys(serverData.data).map( key => {
-                user.get(key.replace("_","")).put(serverData[key])
+                user.get(key.replace("_","")).put(serverData.data[key])
               })
             }).then( _ => {
               query.split(".").reduce((db,val) => {
