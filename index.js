@@ -35,7 +35,7 @@ window.Kano.APICommunication = settings => {
               if (query === "user.avatar") {
                 data = serverData.avatar
               }
-            }))
+            })
           }
           // fetch data
           if (sync) {
