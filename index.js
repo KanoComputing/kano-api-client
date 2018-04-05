@@ -20,7 +20,7 @@ window.Kano.APICommunication = settings => {
       }, gun).once(data => {
         if (data === undefined) {
           if (query === "user.id" || query === "user.joined" || query === "user.avatar") {
-            getDataFromServer("users/me").then(console.log)
+            getDataFromServer("/users/me").then(console.log)
           }
           // fetch data
           if (sync) {
@@ -105,7 +105,7 @@ window.Kano.APICommunication = settings => {
             }
           }
         })
-        xhr.open("GET", "http://ksworldapi-dev.us-west-1.elasticbeanstalk.com/"+path)
+        xhr.open("GET", settings.worldUrl + path)
         xhr.setRequestHeader("content-type", "application/json")
         xhr.setRequestHeader("accept", "application/json")
         xhr.setRequestHeader("authorization", "Bearer "+accessToken)
