@@ -22,8 +22,15 @@ window.Kano.APICommunication = settings => {
           if (query === "user.id" || query === "user.joined" || query === "user.avatar") {
             var user = gun.get("user")
             getDataFromServer("/users/me").then(serverRes => { 
-              serverData = JSON.parse(serverRes)
-              Object.keys(serverData).map( key => {
+              serverData = JSON.parse(serverRes, (key, value) => {
+                if (Array.isArray(value)) {
+                  value = valueToSet.reduce((accumulator, currentValue, currentIndex) => {
+                  accumulator[currentIndex] = currentValue
+                 },{})
+                }
+                return value
+              })
+              Object.keys(serverData.data).map( key => {
                 user.get(key.replace("_","")).put(serverData[key])
               })
               if (query === "user.id") {
