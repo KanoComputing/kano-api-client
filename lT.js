@@ -14,3 +14,5 @@ API.login({
 })
 
 API.read({populate:{fo:"user",Name:"user.username"}}).then(console.log)
+API.logout()
+
