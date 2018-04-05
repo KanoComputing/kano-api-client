@@ -218,7 +218,7 @@ window.Kano.APICommunication = settings => {
                     iv: iv, //The initialization vector you used to encrypt
                   },
                   key, //from generateKey or importKey above
-                  data //ArrayBuffer of the data
+                  str2ab(data) //ArrayBuffer of the data
                 ).then(function(decrypted){
                   console.log(ab2str(decrypted))
                 }).catch(function(err){
