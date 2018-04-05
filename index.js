@@ -24,7 +24,7 @@ window.Kano.APICommunication = settings => {
             getDataFromServer("/users/me").then(serverRes => { 
               serverData = JSON.parse(serverRes, (key, value) => {
                 if (Array.isArray(value)) {
-                  value = valueToSet.reduce((accumulator, currentValue, currentIndex) => {
+                  value = value.reduce((accumulator, currentValue, currentIndex) => {
                   accumulator[currentIndex] = currentValue
                  },{})
                 }
