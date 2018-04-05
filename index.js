@@ -210,7 +210,6 @@ window.Kano.APICommunication = settings => {
           crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"]).then(function(key){
             sha256(args.params.username).then(userSHA => {
               var data = localStorage.getItem(arrayToBase64String(userSHA))
-              var iv = str2ab(localStorage.getItem(arrayToBase64String(userSHA)+"iv"))
               if (data) {
                 window.crypto.subtle.decrypt(
                   {
@@ -271,9 +270,7 @@ window.Kano.APICommunication = settings => {
                 },key, str2ab(localStorage.getItem("gun/")) // TODO get all data and clear
               ).then(encrypted => {
                 sha256(user.username).then(userSHA => { 
-                  
                   localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted))
-                  localStorage.setItem(arrayToBase64String(userSHA) + "iv", ab2str(iv))
                 })
               }).catch(function(err){
                 console.error(err)
