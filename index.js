@@ -178,6 +178,7 @@ window.Kano.APICommunication = settings => {
         return API.read({params:{user: args.params}, populate: args.populate})
       },
       login: args => {
+        args.params.username = args.params.username.toLowerCase()
         return sha256(JSON.stringify(args.params)).then(localhash => {
           crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"]).then(function(key){
             // if encrypted data decrypt it
@@ -204,6 +205,7 @@ window.Kano.APICommunication = settings => {
         })
       },
       logout: args => {
+        
         var key = {
           alg:"A256CBC",
           ext:true,
@@ -211,6 +213,8 @@ window.Kano.APICommunication = settings => {
           key_ops:["encrypt", "decrypt"],
           kty:"oct",
         }
+        
+      }
     }
     return API
   } else {
