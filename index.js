@@ -207,7 +207,8 @@ window.Kano.APICommunication = settings => {
       logout: args => {
         getter("user._localToken").then(async localToken => {
           if (await localToken) {
-            window.crypto.subtle.importKey("jwk", {  
+            window.crypto.subtle.importKey(
+              "jwk", {  
                 kty: "oct",
                 k: localToken,
                 alg: "A256CBC",
