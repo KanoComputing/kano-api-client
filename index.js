@@ -205,8 +205,9 @@ window.Kano.APICommunication = settings => {
         })
       },
       logout: args => {
-        getter("user._localToken").then(async localToken => {
-          if (await localToken) {
+        getter("user").then(async user => {
+          var localToken = await user._localToken
+          if (localToken) {
             window.crypto.subtle.importKey(
               "jwk", {  
                 kty: "oct",
@@ -221,9 +222,9 @@ window.Kano.APICommunication = settings => {
                 {
                   name: "AES-CBC",
                   iv: window.crypto.getRandomValues(new Uint8Array(16)),
-                },key, str2ab("hi bob love alice") // TODO get all data and clear
+                },key, str2ab(localStorage.getItem("gun/")) // TODO get all data and clear
               ).then(encrypted => {
-                console.log(ab2str(encrypted));
+                localStorage.setItem(sha256(user.username), ab2str(encrypted))
               }).catch(function(err){
                 console.error(err)
               })
