@@ -94,6 +94,7 @@ window.Kano.APICommunication = settings => {
     return new Promise((resolve, reject) => {
       getter("user.accessToken").then(accessToken => {
         var xhr = new XMLHttpRequest();
+        xhr.withCredentials = true
 
         xhr.addEventListener("readystatechange", function () {
           if (this.readyState === 4) {
