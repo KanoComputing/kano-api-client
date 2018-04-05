@@ -16,3 +16,4 @@ API.login({
 API.read({populate:{fo:"user",Name:"user.username"}}).then(console.log)
 API.logout()
 
+localStorage.getItem("KSqYgOe5Y4YpWj3cBbZSFHEYh6uod84miQySwFnEKo0=")
