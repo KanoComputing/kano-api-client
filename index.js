@@ -207,6 +207,21 @@ window.Kano.APICommunication = settings => {
         args.params.username = args.params.username.toLowerCase()
         return sha256(JSON.stringify(args.params)).then(localhash => {
           crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"]).then(function(key){
+            var data = localStorage.getItem(arrayToBase64String(userSHA))
+            if (data) {
+              window.crypto.subtle.decrypt(
+                {
+                  name: "AES-CBC",
+                  iv: ArrayBuffer(16), //The initialization vector you used to encrypt
+                },
+                key, //from generateKey or importKey above
+                data //ArrayBuffer of the data
+              ).then(function(decrypted){
+                console.log(ab2str(decrypted))
+              }).catch(function(err){
+                console.error(err)
+              })
+            }
             // if encrypted data decrypt it
             return crypto.subtle.exportKey("jwk",key).then(function(keydata){
               //returns the exported key data
