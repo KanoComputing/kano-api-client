@@ -280,9 +280,13 @@ window.Kano.APICommunication = settings => {
             }).catch(err => {
               console.error("error login in :", err)
             })
-          }
+          // TODO  if logged in as something else
+          } else {
+            return API.read(args)
+          } 
           console.log(await user._localhash)
           console.log(await user._accessToken)
+          
         })
       },
       logout: args => {
