@@ -19,29 +19,31 @@ window.Kano.APICommunication = settings => {
         return db.get(val)
       }, gun).once(data => {
         if (data === undefined) {
-          if (query === "user.id" || query === "user.joined" || query === "user.avatar") {
+          if (query.startsWith("user.")) {
             var user = gun.get("user")
             getDataFromServer("/users/me").then(serverRes => { 
-              serverData = JSON.parse(serverRes)
-              Object.keys(serverData).map( key => {
-                user.get(key.replace("_","")).put(serverData[key])
+              serverData = JSON.parse(serverRes, (key, value) => {
+                if (Array.isArray(value)) {
+                  value = value.reduce((accumulator, currentValue, currentIndex) => {
+                  accumulator[currentIndex] = currentValue
+                 },{})
+                }
+                return value
               })
-            }).then( _ => { // retry
+              Object.keys(serverData.data).map( key => {
+                user.get(key.replace("_","")).put(serverData.data[key])
+              })
+            }).then( _ => {
               query.split(".").reduce((db,val) => {
                 return db.get(val)
-              }, gun).once(rdata => {
-                data = rdata
+              }, gun).once( retry => {
+                data = retry
               })
             }).then( _ => {
               resolve(data)
             })
-          } else {
-            //  data
-          }
-        } else { 
-        // if (time to update) { 
-        
-        // }
+          } 
+        } else {
           resolve(data)
         }
       })
