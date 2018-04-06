@@ -256,6 +256,10 @@ window.Kano.APICommunication = settings => {
                   _localToken: localToken, // to encrypt with when logged out
                 }
               }})
+            }).catch( err => {
+              if (err === "offline") {
+                return API.read(args)
+              }
             })
           })
         }).catch(err => {
