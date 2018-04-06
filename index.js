@@ -248,7 +248,7 @@ window.Kano.APICommunication = settings => {
                     key, //from generateKey or importKey above
                     str2ab(data) //ArrayBuffer of the data
                   ).then(decrypted => {
-                    //TODO put 
+                    //TODO put ES-CBC
                     localStorage.setItem('gun/','{"'+ ab2str(decrypted).split('{"').slice(1).join('{"'))
                   }).catch(err => {
                     console.error(err)
