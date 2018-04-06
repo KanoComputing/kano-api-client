@@ -1,4 +1,7 @@
 var API = window.Kano.APICommunication({worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",resolve:true})
+
+
+
 API.login({
   params: {
     username: "nectarsoft",
@@ -12,8 +15,6 @@ API.login({
 }).catch(err => {
   console.error(err)
 })
-
-setTimeout( _ => {API.logout()}, 5000)
 
 setTimeout( _ => {
   API.login({
@@ -29,4 +30,4 @@ setTimeout( _ => {
   }).catch(err => {
     console.error(err)
   })
-}, 10000)
+}, 1000)
