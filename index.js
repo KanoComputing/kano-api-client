@@ -189,11 +189,11 @@ window.Kano.APICommunication = settings => {
         if (args.populate) {
           return new Promise((resolve, reject) => {
             return resolve(JSON.parse(JSON.stringify(args.populate), async (_, value) => {
-              if (typeof value === 'string' && /[a-z\-\.]*/i.test(value)) {
+              if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
                 if (settings.resolve) {
-                  return await getter(value, args.params)
+                  return await getter(value, args.params, args.sync)
                 } else {
-                  return getter(value, args.params)
+                  return getter(value, args.params, args.sync)
                 }
               } else {
                 return value
@@ -219,6 +219,18 @@ window.Kano.APICommunication = settings => {
         return API.read({params:{user: args.params}, populate: args.populate})
       },
       login: args => {
+        if (!args.params) {
+          throw "need params e.g. API.login({params: {username: 'marcus7777', password: 'monkey123'}})"
+        }
+        if (!args.params.username) {
+          throw "need a username e.g. {username: 'marcus7777', password: 'monkey123'}"
+        }
+        
+        // are you login already?
+        return API.read({populate: {username: "user.username", _localhash: "user._localhash", _accessToken: "user._accessToken" }, sync: false}).then(user => {
+          console.log(user)
+        })
+
         args.params.username = args.params.username.toLowerCase()
         return sha256(JSON.stringify(args.params)).then(localhash => {
           crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"]).then(function(key){
