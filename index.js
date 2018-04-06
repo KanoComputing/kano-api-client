@@ -100,6 +100,9 @@ window.Kano.APICommunication = settings => {
   
   function getDataFromServer(path) {
     return new Promise((resolve, reject) => {
+      if (!navigator.onLine) {
+        reject("offline")
+      }
       getter("user._accessToken").then(accessToken => {
         var xhr = new XMLHttpRequest();
         xhr.withCredentials = true
@@ -109,7 +112,7 @@ window.Kano.APICommunication = settings => {
             if (this.responseText) {
               resolve(this.responseText)
             } else {
-              reject()
+              reject("No Response")
             }
           }
         })
@@ -123,6 +126,9 @@ window.Kano.APICommunication = settings => {
   }
   function poster(payload, path) {
     return new Promise((resolve, reject) => {
+      if (!navigator.onLine) {
+        reject("offline")
+      }
       var xhr = new XMLHttpRequest();
 
       xhr.addEventListener("readystatechange", function () {
@@ -237,7 +243,6 @@ window.Kano.APICommunication = settings => {
             // if encrypted data decrypt it
             return crypto.subtle.exportKey("jwk",key).then(function(keydata){
               //returns the exported key data
-              console.log(keydata)
               return keydata.k // save the hard bit
             })
           }).then( localToken => {
@@ -251,6 +256,10 @@ window.Kano.APICommunication = settings => {
                   _localToken: localToken, // to encrypt with when logged out
                 }
               }})
+            }).catch( err => {
+              if (err === "offline") {
+                return API.read(args)
+              }
             })
           })
         }).catch(err => {
