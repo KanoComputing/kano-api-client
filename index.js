@@ -18,7 +18,7 @@ window.Kano.APICommunication = settings => {
       query.split(".").reduce((db,val) => {
         return db.get(val)
       }, gun).once(data => {
-        if (data === undefined) {
+        if (sync && data === undefined) { //
           if (query.startsWith("user.")) {
             var user = gun.get("user")
             getDataFromServer("/users/me").then(serverRes => { 
@@ -225,57 +225,64 @@ window.Kano.APICommunication = settings => {
         if (!args.params.username) {
           throw "need a username e.g. {username: 'marcus7777', password: 'monkey123'}"
         }
+        args.params.username = args.params.username.toLowerCase()
         
         // are you login already?
-        return API.read({populate: {username: "user.username", _localhash: "user._localhash", _accessToken: "user._accessToken" }, sync: false}).then(user => {
-          console.log(user)
-        })
-
-        args.params.username = args.params.username.toLowerCase()
-        return sha256(JSON.stringify(args.params)).then(localhash => {
-          crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"]).then(function(key){
-            sha256(args.params.username).then(userSHA => {
-              var data = localStorage.getItem(arrayToBase64String(userSHA))
-              localStorage.removeItem(arrayToBase64String(userSHA))
-              if (data) {
-                window.crypto.subtle.decrypt(
-                  {
-                    name: "AES-CBC",
-                    iv: window.crypto.getRandomValues(new Uint8Array(16)) // iv, //The initialization vector you used to encrypt
-                  },
-                  key, //from generateKey or importKey above
-                  str2ab(data) //ArrayBuffer of the data
-                ).then(function(decrypted){
-                  localStorage.setItem('gun/','{"'+ ab2str(decrypted).split('{"').slice(1).join('{"'))
-                }).catch(function(err){
-                  console.error(err)
-                })
-              }
-            })
-            // if encrypted data decrypt it
-            return crypto.subtle.exportKey("jwk",key).then(function(keydata){
-              //returns the exported key data
-              return keydata.k // save the hard bit
-            })
-          }).then( localToken => {
-            // else if
-            return poster(args.params,"/auth/login").then( res => {
-              var token = JSON.parse(res).data.token
-              return API.update({populate:args.populate, params: {
-                user: {
-                  _accessToken: token, // to access server
-                  username: args.params.username,
-                  _localToken: localToken, // to encrypt with when logged out
+        return API.read({populate: {username: "user.username", _localhash: "user._localhash", _accessToken: "user._accessToken" }, sync: false}).then(async user => {
+          if (await user.username === undefined) {
+            if (!args.params.password) {
+              throw "need a password e.g. {username: 'marcus7777', password: 'monkey123'}"
+            }
+            return sha256(JSON.stringify(args.params)).then(localhash => {
+              return crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"])
+            }).then( key => {
+              return sha256(args.params.username).then(userSHA => {
+                var data = localStorage.getItem(arrayToBase64String(userSHA))
+                localStorage.removeItem(arrayToBase64String(userSHA))
+                if (data) {
+                  window.crypto.subtle.decrypt(
+                    {
+                      name: "AES-CBC",
+                      iv: window.crypto.getRandomValues(new Uint8Array(16)) // iv, //The initialization vector you used to encrypt
+                    },
+                    key, //from generateKey or importKey above
+                    str2ab(data) //ArrayBuffer of the data
+                  ).then(decrypted => {
+                    //TODO put 
+                    localStorage.setItem('gun/','{"'+ ab2str(decrypted).split('{"').slice(1).join('{"'))
+                  }).catch(err => {
+                    console.error(err)
+                  })
                 }
-              }})
-            }).catch( err => {
-              if (err === "offline") {
-                return API.read(args)
-              }
+                return key
+              }).then( key => {
+                // if encrypted data decrypt it
+                return crypto.subtle.exportKey("jwk",key)
+              }).then(keydata => {
+                //returns the exported key data
+                return keydata.k // save the hard bit
+              }).then( localToken => {
+                return poster(args.params,"/auth/login")
+              }).then( res => {
+                var token = JSON.parse(res).data.token
+                return API.update({populate:args.populate, params: {
+                  user: {
+                    _accessToken: token, // to access server
+                    username: args.params.username,
+                    _localToken: localToken, // to encrypt with when logged out
+                  }
+                }})
+              }).catch( err => {
+                if (err === "offline") {
+                  return API.read(args)
+                }
+              })
+            }).catch(err => {
+              console.error("error login in :", err)
             })
-          })
-        }).catch(err => {
-          console.error("error login in :", err)
+          }
+          console.log(await user._localhash)
+          console.log(await user._accessToken)
         })
       },
       logout: args => {
