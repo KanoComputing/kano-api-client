@@ -312,7 +312,7 @@ window.Kano.APICommunication = settings => {
                 {
                   name: "AES-CBC",
                   iv: iv,
-                },key, str2ab(localStorage.getItem("gun/")) // TODO get all data and clear
+                },key, str2ab("1234567890"+localStorage.getItem("gun/")) // TODO get all data and clear
               ).then(encrypted => {
                 sha256(user.username).then(userSHA => { 
                   localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted))
