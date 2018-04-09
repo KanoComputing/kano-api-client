@@ -1,6 +1,8 @@
-var API = window.Kano.APICommunication({worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",resolve:true})
-
-
+var API = window.Kano.APICommunication({
+  worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",
+  resolve:true,
+  log:true,
+})
 
 API.login({
   params: {
@@ -9,7 +11,7 @@ API.login({
   },
   populate:{
     id: "user.id",
-  }
+  },
 }).then(user => {
   console.log(user)  
 }).catch(err => {
@@ -33,7 +35,7 @@ setTimeout( _ => {
     },
     populate:{
       id: "user.id",
-    }
+    },
   }).then(user => {
     console.log(user)
   }).catch(err => {

@@ -120,6 +120,7 @@ window.Kano.APICommunication = settings => {
         xhr.setRequestHeader("content-type", "application/json")
         xhr.setRequestHeader("accept", "application/json")
         xhr.setRequestHeader("authorization", "Bearer "+accessToken)
+	if (setting.log){ console.log("get", path ) }
         xhr.send({})
       })
     })
