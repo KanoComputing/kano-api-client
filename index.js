@@ -25,7 +25,7 @@ window.Kano.APICommunication = settings => {
               serverData = JSON.parse(serverRes, (key, value) => {
                 if (Array.isArray(value)) {
                   value = value.reduce((accumulator, currentValue, currentIndex) => {
-                  accumulator[currentIndex] = currentValue
+                  accumulator["Array_"+currentIndex] = currentValue
                  },{})
                 }
                 return value
@@ -52,7 +52,7 @@ window.Kano.APICommunication = settings => {
   function setter(query, valueToSet, params) {
     if (Array.isArray(valueToSet)) {
       valueToSet = valueToSet.reduce((accumulator, currentValue, currentIndex) => {
-        accumulator[currentIndex] = currentValue
+        accumulator["Array_" + currentIndex] = currentValue
       },{})
     }
     var oldValue
@@ -208,11 +208,13 @@ window.Kano.APICommunication = settings => {
         Object.keys(args.params).forEach(key => {
           setter(key, args.params[key])
         })
-        return API.read(args)
+        return API.read(Object.assign({sync: true}, args))
       },
       delete: args => {
         // TODO map value to Null
-        return API.update(args)
+        return API.update(JSON.parse(JSON.stringify(args.params), _ => {
+          return null
+        })
       },
       getUser: args => {
         //TODO test if update okay
@@ -262,27 +264,28 @@ window.Kano.APICommunication = settings => {
                 //returns the exported key data
                 return keydata.k // save the hard bit
               }).then( localToken => {
-                return poster(args.params,"/auth/login")
-              }).then( res => {
-                var token = JSON.parse(res).data.token
-                return API.update({populate:args.populate, params: {
-                  user: {
-                    _accessToken: token, // to access server
-                    username: args.params.username,
-                    _localToken: localToken, // to encrypt with when logged out
-                  }
-                }})
+                poster(args.params,"/auth/login").then(res => {
+                  var token = JSON.parse(res).data.token
+                  return API.update({populate:args.populate, params: {
+                    user: {
+                      username: args.params.username,
+                      _accessToken: token, // to access server
+                      _localToken: localToken, // to encrypt with when logged out
+                    }
+                  }})
+                })
               }).catch( err => {
                 if (err === "offline") {
                   return API.read(args)
                 }
+                console.error(err)
               })
             }).catch(err => {
               console.error("error login in :", err)
             })
           // TODO  if logged in as something else
           } else {
-            return API.read(args)
+            return API.read(Object.assign({sync: true}, args))
           } 
           console.log(await user._localhash)
           console.log(await user._accessToken)
