@@ -214,7 +214,7 @@ window.Kano.APICommunication = settings => {
         // TODO map value to Null
         return API.update(JSON.parse(JSON.stringify(args.params), _ => {
           return null
-        })
+        }))
       },
       getUser: args => {
         //TODO test if update okay
