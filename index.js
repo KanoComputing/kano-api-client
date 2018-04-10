@@ -27,7 +27,7 @@ window.Kano.APICommunication = settings => {
               serverData = JSON.parse(serverRes, (key, value) => {
                 if (Array.isArray(value)) {
                   value = value.reduce((accumulator, currentValue, currentIndex) => {
-                  accumulator["Array_"+currentIndex] = currentValue
+                   return accumulator["Array_"+currentIndex] = currentValue
                  },{})
                 }
                 return value
@@ -54,7 +54,7 @@ window.Kano.APICommunication = settings => {
   function setter(query, valueToSet, params) {
     if (Array.isArray(valueToSet)) {
       valueToSet = valueToSet.reduce((accumulator, currentValue, currentIndex) => {
-        accumulator["Array_" + currentIndex] = currentValue
+        return accumulator["Array_" + currentIndex] = currentValue
       },{})
     }
     var oldValue
