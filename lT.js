@@ -11,6 +11,14 @@ API.login({
   },
   populate:{
     id: "user.id",
+    ui: {
+      followers: {
+        list: "user.followers"
+      },
+      following: {
+        list: "user.following"
+      },
+    }
   },
 }).then(user => {
   console.log(user)  
@@ -18,11 +26,11 @@ API.login({
   console.error(err)
 })
 
-setTimeout( _ => console.log("logging out in "), 1000)
-setTimeout( _ => console.log(3), 2000)
-setTimeout( _ => console.log(2), 3000)
-setTimeout( _ => console.log(1), 4000)
-setTimeout( _ => {API.logout()}, 5000)
+// setTimeout( _ => console.log("logging out in "), 1000)
+// setTimeout( _ => console.log(3), 2000)
+// setTimeout( _ => console.log(2), 3000)
+// setTimeout( _ => console.log(1), 4000)
+// setTimeout( _ => {API.logout()}, 5000)
 setTimeout( _ => console.log("logging in in "), 6000)
 setTimeout( _ => console.log(3), 7000)
 setTimeout( _ => console.log(2), 8000)

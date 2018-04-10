@@ -121,7 +121,7 @@ window.Kano.APICommunication = settings => {
                 stackOfXhr[path].forEach(function(resolved) {
                   resolved(responseText)
                 })
-                resolve(this.responseText)
+                delete(stackOfXhr[path])
               } else {
                 reject("No Response")
               }
@@ -133,7 +133,7 @@ window.Kano.APICommunication = settings => {
           xhr.setRequestHeader("authorization", "Bearer "+accessToken)
           if (settings.log){ console.log("get", path ) }
           xhr.send({})
-	})
+        })
       }
     })
   }
