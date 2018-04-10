@@ -12,6 +12,7 @@ if (!window.Kano) {
   window.Kano = {}
 }
 window.Kano.APICommunication = settings => {
+  var stackOfXhr = {} 
   // libraries
   var gun = Gun()
   // functions
@@ -26,7 +27,7 @@ window.Kano.APICommunication = settings => {
             getDataFromServer("/users/me").then(serverRes => { 
               serverData = JSON.parse(serverRes, (key, value) => {
                 if (Array.isArray(value)) {
-                  value = value.reduce((accumulator, currentValue, currentIndex) => {
+                   value = value.reduce((accumulator, currentValue, currentIndex) => {
                    return accumulator["Array_"+currentIndex] = currentValue
                  },{})
                 }
@@ -102,28 +103,37 @@ window.Kano.APICommunication = settings => {
   
   function getDataFromServer(path) {
     return new Promise((resolve, reject) => {
-      if (!navigator.onLine) {
-        reject("offline")
-      }
-      getter("user._accessToken").then(accessToken => {
-        var xhr = new XMLHttpRequest();
-        xhr.withCredentials = true
-
-        xhr.addEventListener("readystatechange", function () {
-          if (this.readyState === 4) {
-            if (this.responseText) {
-              resolve(this.responseText)
-            } else {
-              reject("No Response")
+      if (stackOfXhr[path]) {
+        stackOfXhr[path].push(resolve)
+      } else {
+        stackOfXhr[path]=[resolve]
+        if (!navigator.onLine) {
+          reject("offline")
+        }
+        getter("user._accessToken").then(accessToken => {
+          var xhr = new XMLHttpRequest();
+          xhr.withCredentials = true
+ 
+          xhr.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+              if (this.responseText) {
+		var responseText = this.responseText
+                stackOfXhr[path].forEach(function(resolved) {
+                  resolved(responseText)
+                })
+                resolve(this.responseText)
+              } else {
+                reject("No Response")
+              }
             }
-          }
-        })
-        xhr.open("GET", settings.worldUrl + path)
-        xhr.setRequestHeader("content-type", "application/json")
-        xhr.setRequestHeader("accept", "application/json")
-        xhr.setRequestHeader("authorization", "Bearer "+accessToken)
-	if (settings.log){ console.log("get", path ) }
-        xhr.send({})
+          })
+          xhr.open("GET", settings.worldUrl + path)
+          xhr.setRequestHeader("content-type", "application/json")
+          xhr.setRequestHeader("accept", "application/json")
+          xhr.setRequestHeader("authorization", "Bearer "+accessToken)
+          if (settings.log){ console.log("get", path ) }
+          xhr.send({})
+	}
       })
     })
   }
