@@ -133,8 +133,8 @@ window.Kano.APICommunication = settings => {
           xhr.setRequestHeader("authorization", "Bearer "+accessToken)
           if (settings.log){ console.log("get", path ) }
           xhr.send({})
-	}
-      })
+	})
+      }
     })
   }
   function poster(payload, path) {
