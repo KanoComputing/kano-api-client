@@ -1,6 +1,8 @@
 if (!window) {
   var window = {}
-  var Gun = require('gun'); // in NodeJS
+  var Gun = require('gun') // in NodeJS
+  require('gun/lib/load.js')
+
 } else {
   var script = document.createElement("script"); // Make a script DOM node
   script.src = "./node_modules/gun/gun.js"
@@ -231,7 +233,7 @@ window.Kano.APICommunication = settings => {
         args.params.username = args.params.username.toLowerCase()
         
         // are you login already?
-        return API.read({populate: {username: "user.username", _localhash: "user._localhash", _accessToken: "user._accessToken" }, sync: false}).then(async user => {
+        return API.read({populate: {username: "user.username", _localToken: "user._localToken", _accessToken: "user._accessToken" }, sync: false}).then(async user => {
           if (await user.username === undefined) {
             if (!args.params.password) {
               throw "need a password e.g. {username: 'marcus7777', password: 'monkey123'}"
@@ -252,6 +254,7 @@ window.Kano.APICommunication = settings => {
                     str2ab(data) //ArrayBuffer of the data
                   ).then(decrypted => {
                     //TODO put ES-CBC
+		    //as no initial Factor I need to chop off the first 8 characters
                     localStorage.setItem('gun/','{"'+ ab2str(decrypted).split('{"').slice(1).join('{"'))
                   }).catch(err => {
                     console.error(err)
@@ -312,7 +315,7 @@ window.Kano.APICommunication = settings => {
                 {
                   name: "AES-CBC",
                   iv: iv,
-                },key, str2ab("1234567890"+localStorage.getItem("gun/")) // TODO get all data and clear
+                },key, str2ab("12345678"+localStorage.getItem("gun/")) // add 8 chr 
               ).then(encrypted => {
                 sha256(user.username).then(userSHA => { 
                   localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted))
