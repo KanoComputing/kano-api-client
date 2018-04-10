@@ -200,18 +200,28 @@ window.Kano.APICommunication = settings => {
       },
       read: args => {
         if (args.populate) {
+          valueMap = {}
           return new Promise((resolve, reject) => {
-            return resolve(JSON.parse(JSON.stringify(args.populate), async (_, value) => {
+            var build = JSON.parse(JSON.stringify(args.populate), async (_, value) => {
               if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
                 if (settings.resolve) {
-                  return await getter(value, args.params, args.sync)
+                  Promise.resolve(await getter(value, args.params, args.sync)).then(val => {
+                    valueMap[value] = val
+                  })
+                  return value
                 } else {
                   return getter(value, args.params, args.sync)
                 }
               } else {
                 return value
               }
-            }))
+            })
+            if (settings.resolve) {
+              build = JSON.parse(JSON.stringify(args.populate), (_, value) => {
+                return valueMap[value] || value
+              })
+            }
+            return resolve(build)  
           })
         } else {
           return {}
@@ -298,12 +308,16 @@ window.Kano.APICommunication = settings => {
               console.error("error login in :", err)
             })
           // TODO  if logged in as something else
-          } else {
-            return API.read(Object.assign({sync: true}, args))
-          } 
+          } else if (await user.username === args.params.username){
+            // you are in
+          } else if (await user.username !== args.params.username){
+            API.logout()
+            API.login(args)
+          }
           console.log(await user._localhash)
           console.log(await user._accessToken)
           
+          return API.read(Object.assign({sync: true}, args))
         })
       },
       logout: args => {
