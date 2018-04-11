@@ -17,40 +17,38 @@ window.Kano.APICommunication = settings => {
   var gun = Gun()
   // functions
   function getter(query,params,sync){
-    return Promise.resolve(
-      return query.split(".").reduce((db,val) => {
-        return db.get(val)
-      }, gun).once(data => {
-        if (sync && data === undefined) { //
-          if (query.startsWith("user.")) {
-            var user = gun.get("user")
-            getDataFromServer("/users/me").then(serverRes => { 
-              serverData = JSON.parse(serverRes, (key, value) => {
-                if (Array.isArray(value)) {
-                   value = value.reduce((accumulator, currentValue, currentIndex) => {
-                   return accumulator["Array_"+currentIndex] = currentValue
-                 },{})
-                }
-                return value
-              })
-              Object.keys(serverData.data).map( key => {
-                user.get(key.replace("_","")).put(serverData.data[key])
-              })
-            }).then( _ => {
-              query.split(".").reduce((db,val) => {
-                return db.get(val)
-              }, gun).once( retry => {
-                data = retry
-              })
-            }).then( _ => {
-              return data
+    return query.split(".").reduce((db,val) => {
+      return db.get(val)
+    }, gun).once(data => {
+      if (sync && data === undefined) { //
+        if (query.startsWith("user.")) {
+          var user = gun.get("user")
+          getDataFromServer("/users/me").then(serverRes => { 
+            serverData = JSON.parse(serverRes, (key, value) => {
+              if (Array.isArray(value)) {
+                value = value.reduce((accumulator, currentValue, currentIndex) => {
+                  return accumulator[currentIndex] = currentValue
+                },{})
+              }
+              return value
             })
-          } 
-        } else {
-          return data
-        }
-      })
-    )
+            Object.keys(serverData.data).map( key => {
+              user.get(key.replace("_","")).put(serverData.data[key])
+            })
+          }).then( _ => {
+            query.split(".").reduce((db,val) => {
+              return db.get(val)
+            }, gun).once( retry => {
+              data = retry
+            })
+          }).then( _ => {
+            return data
+          })
+        } 
+      } else {
+        return data
+      }
+    })
   }
   function setter(query, valueToSet, params) {
     if (Array.isArray(valueToSet)) {
