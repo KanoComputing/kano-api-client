@@ -200,28 +200,15 @@ window.Kano.APICommunication = settings => {
       },
       read: args => {
         if (args.populate) {
-          valueMap = {}
-          return new Promise((resolve, reject) => {
-            var build = JSON.parse(JSON.stringify(args.populate), async (_, value) => {
-              if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
-                if (settings.resolve) {
-                  Promise.resolve(await getter(value, args.params, args.sync)).then(val => {
-                    valueMap[value] = val
-                  })
-                  return value
-                } else {
-                  return getter(value, args.params, args.sync)
-                }
-              } else {
-                return value
+          return JSON.parse(JSON.stringify(args.populate), async (_, value) => {
+            if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
+              if (settings.resolve) {
+                return await getter(value, args.params, args.sync)
               }
-            })
-            if (settings.resolve) {
-              build = JSON.parse(JSON.stringify(args.populate), (_, value) => {
-                return valueMap[value] || value
-              })
+              return getter(value, args.params, args.sync)
+            } else {
+              return value
             }
-            return resolve(build)  
           })
         } else {
           return {}
@@ -254,6 +241,9 @@ window.Kano.APICommunication = settings => {
         
         // are you login already?
         return API.read({populate: {username: "user.username", _localToken: "user._localToken", _accessToken: "user._accessToken" }, sync: false}).then(async user => {
+          if (!user) {
+            console.error("error got user")
+          }
           if (await user.username === undefined) {
             if (!args.params.password) {
               throw "need a password e.g. {username: 'marcus7777', password: 'monkey123'}"
@@ -309,13 +299,12 @@ window.Kano.APICommunication = settings => {
             })
           // TODO  if logged in as something else
           } else if (await user.username === args.params.username){
-            // you are in
+            if (settings.log){ console.log("you are (and were) logged in :)" ) }
           } else if (await user.username !== args.params.username){
-            API.logout()
-            API.login(args)
+//            API.logout()
+            // API.login(args)
+
           }
-          console.log(await user._localhash)
-          console.log(await user._accessToken)
           
           return API.read(Object.assign({sync: true}, args))
         })
