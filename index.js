@@ -17,8 +17,8 @@ window.Kano.APICommunication = settings => {
   var gun = Gun()
   // functions
   function getter(query,params,sync){
-    return new Promise((resolve, reject) => {
-      query.split(".").reduce((db,val) => {
+    return Promise.resolve(
+      return query.split(".").reduce((db,val) => {
         return db.get(val)
       }, gun).once(data => {
         if (sync && data === undefined) { //
@@ -43,14 +43,14 @@ window.Kano.APICommunication = settings => {
                 data = retry
               })
             }).then( _ => {
-              resolve(data)
+              return data
             })
           } 
         } else {
-          resolve(data)
+          return data
         }
       })
-    })
+    )
   }
   function setter(query, valueToSet, params) {
     if (Array.isArray(valueToSet)) {
