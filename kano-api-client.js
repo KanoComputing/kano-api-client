@@ -1,7 +1,7 @@
 export default settings => {
   var stackOfXhr = {} 
   // libraries
-  var Gun = require('gun')
+  var Gun = require('../gun/gun.js')
   var gun = Gun()
   // functions
   function getter(query,params,sync){

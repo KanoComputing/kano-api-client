@@ -1,5 +1,5 @@
 export default [{
-    input: 'kano-api-communication-lib.js',
+    input: 'kano-api-client.js',
     output: {
         file: 'dist/kano-api-client.js',
         format: 'umd',
