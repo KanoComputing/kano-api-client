@@ -1,17 +1,4 @@
-if (!window) {
-  var window = {}
-  var Gun = require('gun') // in NodeJS
-  require('gun/lib/load.js')
-
-} else {
-  var script = document.createElement("script"); // Make a script DOM node
-  script.src = "./node_modules/gun/gun.js"
-  document.head.appendChild(script)
-}
-if (!window.Kano) {
-  window.Kano = {}
-}
-window.Kano.APICommunication = settings => {
+export default settings => {
   var stackOfXhr = {} 
   // libraries
   var gun = Gun()
