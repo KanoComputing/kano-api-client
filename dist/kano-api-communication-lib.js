@@ -1,23 +1,10 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (factory());
+  (global.kanoApiCommunicationLib = factory());
 }(this, (function () { 'use strict';
 
-  if (!window) {
-    var window = {};
-    var Gun = require('gun'); // in NodeJS
-    require('gun/lib/load.js');
-
-  } else {
-    var script = document.createElement("script"); // Make a script DOM node
-    script.src = "./node_modules/gun/gun.js";
-    document.head.appendChild(script);
-  }
-  if (!window.Kano) {
-    window.Kano = {};
-  }
-  window.Kano.APICommunication = settings => {
+  var kanoApiCommunicationLib = settings => {
     var stackOfXhr = {}; 
     // libraries
     var gun = Gun();
@@ -350,6 +337,8 @@
     } else {
       console.error("Need a worldUrl");
     }
-  };
+  }
+
+  return kanoApiCommunicationLib;
 
 })));
