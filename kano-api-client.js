@@ -1,7 +1,7 @@
+import * as testing from '../gun/gun.js'
 export default settings => {
   var stackOfXhr = {} 
   // libraries
-  var Gun = require('../gun/gun.js')
   var gun = Gun()
   // functions
   function getter(query,params,sync){
@@ -15,9 +15,10 @@ export default settings => {
             getDataFromServer("/users/me").then(serverRes => { 
               serverData = JSON.parse(serverRes, (key, value) => {
                 if (Array.isArray(value)) {
-                   value = value.reduce((accumulator, currentValue, currentIndex) => {
-                   return accumulator["Array_"+currentIndex] = currentValue
-                 },{})
+                  value = value.reduce((accumulator, currentValue, currentIndex) => {
+                    accumulator["Array_"+currentIndex] = currentValue
+                    return accumulator
+                  },{})
                 }
                 return value
               })
