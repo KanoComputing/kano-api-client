@@ -284,7 +284,7 @@ window.Kano.APICommunication = settings => {
                   ).then(decrypted => {
                     //TODO put ES-CBC
 		    //as no initial Factor I need to chop off the first 8 characters
-                    localStorage.setItem('gun/','{"'+ ab2str(decrypted).split('{"').slice(1).join('{"'))
+                    localStorage.setItem('gun/', ab2str(decrypted).slice(8))
                   }).catch(err => {
                     console.error(err)
                   })
