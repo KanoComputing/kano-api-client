@@ -1,5 +1,5 @@
 ```
-var API = window.Kano.APICommunication({
+var API = window.Kano.apiClient({
   worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",
   resolve:true,
   log:true,
