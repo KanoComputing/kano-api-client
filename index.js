@@ -17,37 +17,39 @@ window.Kano.APICommunication = settings => {
   var gun = Gun()
   // functions
   function getter(query,params,sync){
-    return query.split(".").reduce((db,val) => {
-      return db.get(val)
-    }, gun).once(data => {
-      if (sync && data === undefined) { //
-        if (query.startsWith("user.")) {
-          var user = gun.get("user")
-          getDataFromServer("/users/me").then(serverRes => { 
-            serverData = JSON.parse(serverRes, (key, value) => {
-              if (Array.isArray(value)) {
-                value = value.reduce((accumulator, currentValue, currentIndex) => {
-                  return accumulator[currentIndex] = currentValue
-                },{})
-              }
-              return value
+    return new Promise((resolve, reject) => {
+      query.split(".").reduce((db,val) => {
+        return db.get(val)
+      }, gun).once(data => {
+        if (sync && data === undefined) { //
+          if (query.startsWith("user.")) {
+            var user = gun.get("user")
+            getDataFromServer("/users/me").then(serverRes => { 
+              serverData = JSON.parse(serverRes, (key, value) => {
+                if (Array.isArray(value)) {
+                   value = value.reduce((accumulator, currentValue, currentIndex) => {
+                   return accumulator["Array_"+currentIndex] = currentValue
+                 },{})
+                }
+                return value
+              })
+              Object.keys(serverData.data).map( key => {
+                user.get(key.replace("_","")).put(serverData.data[key])
+              })
+            }).then( _ => {
+              query.split(".").reduce((db,val) => {
+                return db.get(val)
+              }, gun).once( retry => {
+                data = retry
+              })
+            }).then( _ => {
+              resolve(data)
             })
-            Object.keys(serverData.data).map( key => {
-              user.get(key.replace("_","")).put(serverData.data[key])
-            })
-          }).then( _ => {
-            query.split(".").reduce((db,val) => {
-              return db.get(val)
-            }, gun).once( retry => {
-              data = retry
-            })
-          }).then( _ => {
-            return data
-          })
-        } 
-      } else {
-        return data
-      }
+          } 
+        } else {
+          resolve(data)
+        }
+      })
     })
   }
   function setter(query, valueToSet, params) {
@@ -198,16 +200,35 @@ window.Kano.APICommunication = settings => {
       },
       read: args => {
         if (args.populate) {
-          return JSON.parse(JSON.stringify(args.populate), async (_, value) => {
+          var allThePromises = []
+          var bulid = JSON.parse(JSON.stringify(args.populate),(_, value) => {
             if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
               if (settings.resolve) {
-                return await getter(value, args.params, args.sync)
+                allThePromises.push(getter(value, args.params, args.sync) )
+                return value
               }
               return getter(value, args.params, args.sync)
             } else {
               return value
             }
           })
+          if (settings.resolve) {
+            return Promise.all(allThePromises).then((values) => {
+              var i = values.length - 1
+              return JSON.parse(JSON.stringify(args.populate),(_, value) => {
+                if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
+                  if (settings.resolve) {
+                    return values[i--]
+                  }
+                  return getter(value, args.params, args.sync)
+               } else {
+                 return value
+               }
+              })
+            })
+          } else {
+            return bulid
+          }
         } else {
           return {}
         }
