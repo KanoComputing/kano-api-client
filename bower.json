@@ -1,0 +1,20 @@
+{
+  "name": "kano-api-client",
+  "homepage": "https://github.com/KanoComputing/kano-api-client",
+  "authors": [
+    "Kano Computing Ltd."
+  ],
+  "description": "api client data management",
+  "main": "kano-api-client.html",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "gun": "^0.9.92"
+  }
+}
