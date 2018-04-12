@@ -3,6 +3,6 @@ export default [{
     output: {
         file: 'dist/kano-api-communication-lib.js',
         format: 'umd',
-        name: 'kanoApiCommunicationLib',
+        name: 'Kano.ApiCommunicationLib',
     },
 }];
