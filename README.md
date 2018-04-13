@@ -1,3 +1,12 @@
+install as a Bower component
+then import clients from a client API
+```
+
+```
+assign the API to a variable including the settings. The settings options are our worldUrl,resolve and log
+worldUrl: The URL of the API you are querying.
+resolve: If result is true all populated Returns will be their values otherwise they will be returned as individual promises.
+log: if you can't work out what's going on set this.
 ```
 var API = window.Kano.apiClient({
   worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",
@@ -5,6 +14,10 @@ var API = window.Kano.apiClient({
   log:true,
 })
 ```
+
+The functions `create` `read` `update` `delete` and `login` are exposed by clientApi take 1 arguments that an object containing a params and a populate object.
+here's an example with `login`.
+
 
 ```
 API.login({
@@ -28,20 +41,8 @@ API.login({
 }).catch(err => {
   console.error(err)
 })
-setTimeout( _ => {API.logout()}, 5000)
-setTimeout( _ => {
-  API.login({
-    params: {
-      username: "nectarsoft",
-      password: "Chupand0nectar",
-    },
-    populate:{
-      id: "user.id",
-    },
-  }).then(user => {
-    console.log(user)
-  }).catch(err => {
-    console.error(err)
-  })
-}, 10000)
+```
+logout which doesn't take any arguments
+```
+API.logout()
 ```
