@@ -1,10 +1,19 @@
 'use strict';
 import '../gun/gun.js'
 const client = settings => {
-  var stackOfXhr = {} 
+  var stackOfXhr = {}
   // libraries
   var gun = Gun()
   // functions
+  function ifArray(data) {
+    if (typeof data === "object" && Object.keys(data).length && "012345678910".startsWith(Object.keys(data).join("").slice(10))) { 
+      return Object.keys(data).map(value => {
+        return data[value]
+      })
+    } else {
+      return data
+    }
+  }
   function getter(query,params,sync){
     return new Promise((resolve, reject) => {
       query.split(".").reduce((db,val) => {
@@ -17,7 +26,7 @@ const client = settings => {
               var serverData = JSON.parse(serverRes, (key, value) => {
                 if (Array.isArray(value)) {
                   value = value.reduce((accumulator, currentValue, currentIndex) => {
-                    accumulator["Array_"+currentIndex] = currentValue
+                    accumulator[currentIndex] = currentValue
                     return accumulator
                   },{})
                 }
@@ -33,11 +42,11 @@ const client = settings => {
                 data = retry
               })
             }).then( _ => {
-              resolve(data)
+              resolve(ifArray(data))
             })
           } 
         } else {
-          resolve(data)
+          resolve(ifArray(data))
         }
       })
     })
@@ -45,7 +54,7 @@ const client = settings => {
   function setter(query, valueToSet, params) {
     if (Array.isArray(valueToSet)) {
       valueToSet = valueToSet.reduce((accumulator, currentValue, currentIndex) => {
-        return accumulator["Array_" + currentIndex] = currentValue
+        return accumulator[currentIndex] = currentValue
       },{})
     }
     var oldValue
