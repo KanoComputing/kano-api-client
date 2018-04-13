@@ -1,5 +1,6 @@
-import * as testing from '../gun/gun.js'
-export default settings => {
+'use strict';
+import '../gun/gun.js'
+const client = settings => {
   var stackOfXhr = {} 
   // libraries
   var gun = Gun()
@@ -354,3 +355,4 @@ export default settings => {
     console.error("Need a worldUrl")
   }
 }
+export default client
