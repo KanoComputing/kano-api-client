@@ -15,7 +15,7 @@
     "tests"
   ],
   "dependencies": {
-    "gun": "^0.9.92",
+    "gun": "#master",
     "webcomponentsjs": "^1.2.0"
   }
 }
