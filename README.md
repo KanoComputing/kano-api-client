@@ -1,5 +1,4 @@
-install as a Bower component
-then import clients from a client API
+Install as a Bower component then import clients from a client API
 ```
 import client from './kano-api-client.js';
 ```
@@ -15,7 +14,7 @@ const API = window.Kano.apiClient({
 })
 ```
 
-The functions `create` `read` `update` `delete` and `login` are exposed by clientApi take 1 arguments that an object containing a params and a populate object.
+The functions `create` `read` `update` `delete` and `login` are exposed by clientApi take 1 arguments that an object containing a params and a populate object. And return the populated object. 
 here's an example with `login`.
 
 
