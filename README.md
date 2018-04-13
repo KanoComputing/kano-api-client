@@ -1,14 +1,14 @@
 install as a Bower component
 then import clients from a client API
 ```
-
+import client from './kano-api-client.js';
 ```
 assign the API to a variable including the settings. The settings options are our worldUrl,resolve and log
 worldUrl: The URL of the API you are querying.
 resolve: If result is true all populated Returns will be their values otherwise they will be returned as individual promises.
 log: if you can't work out what's going on set this.
 ```
-var API = window.Kano.apiClient({
+const API = window.Kano.apiClient({
   worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",
   resolve:true,
   log:true,
