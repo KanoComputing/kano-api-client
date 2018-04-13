@@ -27,7 +27,7 @@
   }).catch(err => {
     console.error(err)
   })
-  setTimeout( _ => {API.logout()}, 5000)
+  setTimeout(API.logout, 5000)
   setTimeout( _ => {
     API.login({
       params: {

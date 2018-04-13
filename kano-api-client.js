@@ -13,7 +13,7 @@ export default settings => {
           if (query.startsWith("user.")) {
             var user = gun.get("user")
             getDataFromServer("/users/me").then(serverRes => { 
-              serverData = JSON.parse(serverRes, (key, value) => {
+              var serverData = JSON.parse(serverRes, (key, value) => {
                 if (Array.isArray(value)) {
                   value = value.reduce((accumulator, currentValue, currentIndex) => {
                     accumulator["Array_"+currentIndex] = currentValue
@@ -206,13 +206,10 @@ export default settings => {
               var i = values.length - 1
               return JSON.parse(JSON.stringify(args.populate),(_, value) => {
                 if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
-                  if (settings.resolve) {
-                    return values[i--]
-                  }
-                  return getter(value, args.params, args.sync)
-               } else {
-                 return value
-               }
+                  return values[i--]
+                } else {
+                  return value
+                }
               })
             })
           } else {
