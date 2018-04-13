@@ -63,9 +63,9 @@ const client = settings => {
     }).then( _ => {
       if (oldValue ==! undefined && JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
         // add to postList
-        console.log("needs sync", newValue)
+        if (settings.log){ console.log("needs sync", newValue) }
       } else {
-        console.log("In sync", newValue)
+        if (settings.log){ console.log("In sync", newValue) }
       }
     }).then( _ => {
       return newValue
@@ -248,7 +248,7 @@ const client = settings => {
         // are you login already?
         return API.read({populate: {username: "user.username", _localToken: "user._localToken", _accessToken: "user._accessToken" }, sync: false}).then(async user => {
           if (!user) {
-            console.error("error got user")
+            if (settings.log){ console.error("error got user") }
           }
           if (await user.username === undefined) {
             if (!args.params.password) {
