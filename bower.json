@@ -16,6 +16,7 @@
   ],
   "dependencies": {
     "gun": "#master",
+    "gun-synclist": "Stefdv/gun-synclist",
     "webcomponentsjs": "^1.2.0",
     "base32k": "simonratner/base32k"
   }
