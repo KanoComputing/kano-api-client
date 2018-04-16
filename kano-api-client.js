@@ -6,8 +6,13 @@ const client = settings => {
   var gun = Gun()
   // functions
   function ifArray(data) {
-    if (typeof data === "object" && Object.keys(data).length && "012345678910".startsWith(Object.keys(data).join("").slice(10))) { 
-      return Object.keys(data).map(value => {
+    if (typeof data === "object" && Object.keys(data).length && "012345678910".startsWith(Object.keys(data).join("").slice(0,-1))) { 
+      return Object.keys(data).reduce((a,v) => {
+        if (v !== "_" && v == +v ) {
+          a.push(v)
+        }
+        return a
+      },[]).map(value => {
         return data[value]
       })
     } else {
@@ -192,7 +197,38 @@ const client = settings => {
     var asciiString = window.atob(s)
     return new Uint8Array([...asciiString].map(char => char.charCodeAt(0)))
   }
+  function keyFromLocalToken(localToken) {
+    return window.crypto.subtle.importKey( "jwk", { kty: "oct", k: localToken, alg: "A256CBC", ext: true, },{ name: "AES-CBC", },false, ["encrypt", "decrypt"])
+  }
+  function encryptString (localToken, data) {
+    return keyFromLocalToken(localToken).then(key => {
+      var iv = window.crypto.getRandomValues(new Uint8Array(16))
+      return window.crypto.subtle.encrypt(
+        {
+          name: "AES-CBC",
+          iv: iv,
+        },key, str2ab("12345678"+data) // add 8 chr 
+      )
+    }).then(encrypted => {
+      return ab2str(encrypted)
+    })
+  }
+  function decryptString (localToken, data) {
+    return keyFromLocalToken(localToken).then(key => {
+      return window.crypto.subtle.decrypt(
+        {
+          name: "AES-CBC",
+          iv: window.crypto.getRandomValues(new Uint8Array(16)) // iv, //The initialization vector you used to encrypt
+        },
+        key, //from generateKey or importKey above
+        str2ab(data),
+      )
+    }).then(decrypted => {
+      return ab2str(decrypted).slice(8)
+    })
+  }
   if (settings && settings.worldUrl) {
+    debugger
     const API = {
       create: args => {
         return API.update(args)
@@ -280,7 +316,7 @@ const client = settings => {
                   ).then(decrypted => {
                     //TODO put ES-CBC
 		    //as no initial Factor I need to chop off the first 8 characters
-                    localStorage.setItem('gun/', ab2str(decrypted).slice(8))
+                  //  localStorage.setItem('gun/', ab2str(decrypted).slice(8))
                   }).catch(err => {
                     console.error(err)
                   })
@@ -328,16 +364,7 @@ const client = settings => {
         getter("user").then(async user => {
           var localToken = await user._localToken
           if (localToken) {
-            window.crypto.subtle.importKey(
-              "jwk", {  
-                kty: "oct",
-                k: localToken,
-                alg: "A256CBC",
-                ext: true,
-              },{ 
-                name: "AES-CBC",
-              },false, ["encrypt", "decrypt"]
-            ).then(key => {
+            keyFromLocalToken(localToken).then(key => {
               var iv = window.crypto.getRandomValues(new Uint8Array(16))
               window.crypto.subtle.encrypt(
                 {
@@ -347,7 +374,8 @@ const client = settings => {
               ).then(encrypted => {
                 sha256(user.username).then(userSHA => { 
                   localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted))
-                  localStorage.removeItem('gun/')
+                  localStorage.removeItem('user')
+                  localStorage.removeItem('key')
                 })
               }).catch(function(err){
                 console.error(err)

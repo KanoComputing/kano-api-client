@@ -16,6 +16,7 @@
   ],
   "dependencies": {
     "gun": "#master",
-    "webcomponentsjs": "^1.2.0"
+    "webcomponentsjs": "^1.2.0",
+    "base32k": "simonratner/base32k"
   }
 }
