@@ -228,7 +228,6 @@ const client = settings => {
     })
   }
   if (settings && settings.worldUrl) {
-    debugger
     const API = {
       create: args => {
         return API.update(args)
