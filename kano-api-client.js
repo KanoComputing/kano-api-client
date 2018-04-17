@@ -1,6 +1,5 @@
 'use strict';
 import '../gun/gun.js'
-import base32k from '../base32k/base32k.js'
 const client = settings => {
   var stackOfXhr = {}
   // libraries
