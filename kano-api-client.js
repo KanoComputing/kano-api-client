@@ -1,5 +1,6 @@
 'use strict';
 import '../gun/gun.js'
+import base32k from '../base32k/base32k.js'
 const client = settings => {
   var stackOfXhr = {}
   // libraries
@@ -21,7 +22,7 @@ const client = settings => {
   }
   function getter(query,params,sync){
     return new Promise((resolve, reject) => {
-      query.split(".").reduce((db,val) => {
+      query.split(".*")[0].split(".").reduce((db,val) => { // TODO use "gun load"  if ".*"
         return db.get(val)
       }, gun).once(data => {
         if (sync && data === undefined) { //
@@ -207,7 +208,7 @@ const client = settings => {
         {
           name: "AES-CBC",
           iv: iv,
-        },key, str2ab("12345678"+data) // add 8 chr 
+        },key, str2ab("12345678"+data) // add 8 chr due to droppinginitial vector 
       )
     }).then(encrypted => {
       return ab2str(encrypted)
