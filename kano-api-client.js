@@ -237,9 +237,11 @@ const client = settings => {
       read: args => {
         if (args.populate) {
           var allThePromises = []
+          var allThePromisesKeys = []
           var bulid = JSON.parse(JSON.stringify(args.populate),(_, value) => {
             if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
               if (settings.resolve) {
+                allThePromisesKeys.push(value)
                 allThePromises.push(getter(value, args.params, args.sync) )
                 return value
               }
@@ -253,7 +255,7 @@ const client = settings => {
               var i = values.length - 1
               return JSON.parse(JSON.stringify(args.populate),(_, value) => {
                 if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
-                  return values[i--]
+                  return values[allThePromisesKeys.indexOf(value)]
                 } else {
                   return value
                 }
