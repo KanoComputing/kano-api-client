@@ -229,7 +229,16 @@ const client = settings => {
   }
   if (settings && settings.worldUrl) {
     const API = {
-      create: args => {
+      create: sync args => {
+        if (args.params.user && await !getter("user.username")) {
+          if (args.params.user.username && args.params.user.password && args.params.user.email) {
+            poster(assign({
+              marketing: false, 
+              erole:"string", // TODO need to find out what these are for
+              epurpose:"string",
+            },args.params.user)
+          }
+        }
         return API.update(args)
       },
       read: args => {
