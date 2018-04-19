@@ -1,6 +1,6 @@
 <script type="module">
 
-import client from './kano-api-client.js';
+  import client from './kano-api-client.js';
 
 localStorage.clear()
 
@@ -13,7 +13,7 @@ const API = client({
 API.create({
   params: {
     user: {
-      username: "marchdkudkeuus",
+      username: "test" + Math.random(),
       email: "marcus@kano.me",
       password: "342340bab5uxexeuee4",
     }
