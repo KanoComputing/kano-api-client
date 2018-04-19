@@ -2,16 +2,21 @@
 
 import client from './kano-api-client.js';
 
+localStorage.clear()
+
 const API = client({
   worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",
   resolve:true,
   log:true,
 })
 
-API.login({
+API.create({
   params: {
-    username: "nectarsoft",
-    password: "Chupand0nectar",
+    user: {
+      username: "marchdkudkeuus",
+      email: "marcus@kano.me",
+      password: "342340bab5uxexeuee4",
+    }
   },
   populate:{
     id: "user.id",

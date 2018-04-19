@@ -21,12 +21,27 @@ const client = settings => {
   }
   function getter(query,params,sync){
     return new Promise((resolve, reject) => {
-      query.split(".*")[0].split(".").reduce((db,val) => { // TODO use "gun load"  if ".*"
+      var loggedInUser = localStorage.getItem("user")
+      var queryRun = query 
+      if (loggedInUser) {
+        if ("user._accessToken" == query) { 
+          return loggedInUser._accessToken
+        } else if (query === "user.username") {
+          return loggedInUser.username
+        } else if (query === "user._localToken") {
+          return loggedInUser._localToken
+        } else {
+          queryRun = query.replace("user", loggedInUser.mapTo)
+        } 
+      } else if (query.startsWith("user.")) {
+        return undefined
+      }
+      queryRun.split(".*")[0].split(".").reduce((db,val) => { // TODO use "gun load"  if ".*"
         return db.get(val)
       }, gun).once(data => {
         if (sync && data === undefined) { //
-          if (query.startsWith("user.")) {
-            var user = gun.get("user")
+          if (query.startsWith("users.")) {
+            var user = gun.get("users").get(loggedInUser.userHash)
             getDataFromServer("/users/me").then(serverRes => { 
               var serverData = JSON.parse(serverRes, (key, value) => {
                 if (Array.isArray(value)) {
@@ -57,6 +72,12 @@ const client = settings => {
     })
   }
   function setter(query, valueToSet, params) {
+    var loggedInUser = localStorage.getItem("user")
+    if (loggedInUser) {
+      if (query.startsWith("user")) {
+        query = query.replace("user", loggedInUser.mapTo)
+      }
+    }
     if (Array.isArray(valueToSet)) {
       valueToSet = valueToSet.reduce((accumulator, currentValue, currentIndex) => {
         return accumulator[currentIndex] = currentValue
@@ -227,19 +248,78 @@ const client = settings => {
       return ab2str(decrypted).slice(8)
     })
   }
+  function makeLocalToken(username, password) {
+    return sha256(username + password).then(localhash => {
+      return crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"])
+    }).then( key => {
+      return sha256(args.params.username).then(userSHA => {
+        var data = localStorage.getItem(arrayToBase64String(userSHA))
+        localStorage.removeItem(arrayToBase64String(userSHA))
+        if (data) {
+          window.crypto.subtle.decrypt(
+            {
+              name: "AES-CBC",
+              iv: window.crypto.getRandomValues(new Uint8Array(16)) // iv, //The initialization vector you used to encrypt
+            },
+            key, //from generateKey or importKey above
+            str2ab(data) //ArrayBuffer of the data
+          ).then(decrypted => {
+            //TODO put ES-CBC
+            //as no initial Factor I need to chop off the first 8 characters
+            localStorage.setItem('user', ab2str(decrypted).slice(8))
+          }).catch(err => {
+            console.error(err)
+          })
+        }
+        return key
+      }).then( key => {
+        // if encrypted data decrypt it
+        return crypto.subtle.exportKey("jwk",key)
+      }).then(keydata => {
+        //returns the exported key data
+        return keydata.k // save the hard bit
+      }) 
+    })
+  }
   if (settings && settings.worldUrl) {
     const API = {
-      create: sync args => {
-        if (args.params.user && await !getter("user.username")) {
+      create: args => {
+        var loggedInUser = localStorage.getItem("user")
+        if (args.params.user && !loggedInUser) {
           if (args.params.user.username && args.params.user.password && args.params.user.email) {
-            poster(assign({
-              marketing: false, 
-              erole:"string", // TODO need to find out what these are for
-              epurpose:"string",
-            },args.params.user)
+            if (!args.params.user.erole) {args.params.user.erole = "notset"}
+          //  if (!args.params.user.epurpose) {args.params.user.epurpose = "notset"}
+            return poster(args.params.user,"/accounts").then(user => {
+              if (settings.log){ console.log(user)}
+              // duration 
+              // user
+              if (JSON.parse(res).data && JSON.parse(res).data.token) {
+                var token = JSON.parse(res).data.token
+                var duration = JSON.parse(res).data.duration
+                var user = JSON.parse(res).data.user
+
+                makeLocalToken(username, password).then( localToken => { 
+                  sha256(args.params.user.username).then( userHash => {
+                    userHash = arrayToBase64String(userHash)
+                    localStorage.setItem('user', JSON.stringify({
+                      mapTo: "users." + args.params.user.username,
+                      username: args.params.user.username,
+                      _localToken: localToken, // to encrypt with when logged out
+                      _accessToken: token, // to access server 
+                      userHash: userHash,
+                    }))
+                  })
+                })
+              }
+              args.params = {
+                user: user
+              }
+              return API.update(args)  
+            }).catch(err => {
+              console.error("error create user", err)
+            })
           }
         }
-        return API.update(args)
       },
       read: args => {
         if (args.populate) {
@@ -309,87 +389,47 @@ const client = settings => {
             if (!args.params.password) {
               throw "need a password e.g. {username: 'marcus7777', password: 'monkey123'}"
             }
-            return sha256(JSON.stringify(args.params)).then(localhash => {
-              return crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"])
-            }).then( key => {
-              return sha256(args.params.username).then(userSHA => {
-                var data = localStorage.getItem(arrayToBase64String(userSHA))
-                localStorage.removeItem(arrayToBase64String(userSHA))
-                if (data) {
-                  window.crypto.subtle.decrypt(
-                    {
-                      name: "AES-CBC",
-                      iv: window.crypto.getRandomValues(new Uint8Array(16)) // iv, //The initialization vector you used to encrypt
-                    },
-                    key, //from generateKey or importKey above
-                    str2ab(data) //ArrayBuffer of the data
-                  ).then(decrypted => {
-                    //TODO put ES-CBC
-		    //as no initial Factor I need to chop off the first 8 characters
-                  //  localStorage.setItem('gun/', ab2str(decrypted).slice(8))
-                  }).catch(err => {
-                    console.error(err)
-                  })
-                }
-                return key
-              }).then( key => {
-                // if encrypted data decrypt it
-                return crypto.subtle.exportKey("jwk",key)
-              }).then(keydata => {
-                //returns the exported key data
-                return keydata.k // save the hard bit
-              }).then( localToken => {
-                poster(args.params,"/auth/login").then(res => {
-                  var token = JSON.parse(res).data.token
-                  return API.update({populate:args.populate, params: {
-                    user: {
-                      username: args.params.username,
-                      _accessToken: token, // to access server
-                      _localToken: localToken, // to encrypt with when logged out
-                    }
-                  }})
+            return makeLocalToken.then( localToken => {
+              poster(args.params,"/accounts/auth").then(res => {
+                var token = JSON.parse(res).data.token
+                sha256(args.params.username).then( userHash => {
+                  userHash = arrayToBase64String(userHash)
+                  localStorage.setItem('user',JSON.stringify({
+                    mapTo: "users." + args.params.username, 
+                    username: args.params.username, 
+                    _localToken: localToken, // to encrypt with when logged out
+                    _accessToken: token, // to access server 
+                    userHash: userHash,
+                  }))
                 })
-              }).catch( err => {
-                if (err === "offline") {
-                  return API.read(args)
-                }
-                console.error(err)
+                return API.read({populate:args.populate})
               })
-            }).catch(err => {
-              console.error("error login in :", err)
+            }).catch( err => {
+              if (err === "offline") {
+                return API.read(args)
+              }
+              console.error(err)
             })
           // TODO  if logged in as something else
           } else if (await user.username === args.params.username){
             if (settings.log){ console.log("you are (and were) logged in :)" ) }
           } else if (await user.username !== args.params.username){
-//            API.logout()
-            // API.login(args)
-
+            API.logout()
+            API.login(args)
           }
-          
           return API.read(Object.assign({sync: true}, args))
         })
       },
       logout: args => {
-        getter("user").then(async user => {
-          var localToken = await user._localToken
+        getter("user._localToken").then(localToken => {
           if (localToken) {
-            keyFromLocalToken(localToken).then(key => {
-              var iv = window.crypto.getRandomValues(new Uint8Array(16))
-              window.crypto.subtle.encrypt(
-                {
-                  name: "AES-CBC",
-                  iv: iv,
-                },key, str2ab("12345678"+localStorage.getItem("gun/")) // add 8 chr 
-              ).then(encrypted => {
-                sha256(user.username).then(userSHA => { 
-                  localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted))
-                  localStorage.removeItem('user')
-                  localStorage.removeItem('key')
-                })
-              }).catch(function(err){
-                console.error(err)
+            encryptString(localToken,localStorage.getItem("user")).then(encrypted => {
+              sha256(user.username).then(userSHA => { 
+                localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted))
+                localStorage.removeItem('user')
               })
+            }).catch(function(err){
+              console.error(err)
             })
           }
         }).catch(err => {
