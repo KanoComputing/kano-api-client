@@ -47,4 +47,7 @@ API.login({
 logout which doesn't take any arguments
 ```
 API.logout()
-```
+
+### expose value
+
+```API.isLoggedIn```
