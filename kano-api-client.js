@@ -76,6 +76,16 @@ const client = settings => {
       })
     })
   }
+  function arraysToObject(valueToSet) {
+    return JSON.parse(JSON.stringify(valueToSet, (_, value) => {
+      if (Array.isArray(value)) {
+        return value.reduce((accumulator, currentValue, currentIndex) => {
+          return accumulator[currentIndex] = currentValue
+        },{})
+      }
+      return value
+    }))
+  }
   function setter(query, valueToSet, params) {
     var loggedInUser = localStorage.getItem("user")
     if (loggedInUser) {
@@ -83,11 +93,9 @@ const client = settings => {
         query = query.replace("user", loggedInUser.mapTo)
       }
     }
-    if (Array.isArray(valueToSet)) {
-      valueToSet = valueToSet.reduce((accumulator, currentValue, currentIndex) => {
-        return accumulator[currentIndex] = currentValue
-      },{})
-    }
+
+    valueToSet = arraysToObject(valueToSet)
+    
     var oldValue
     var newValue
     return getter(query).then(data => {
