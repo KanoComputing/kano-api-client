@@ -1,6 +1,11 @@
 'use strict';
 import '../gun/gun.js'
 const client = settings => {
+  var initialStateLoggedInUser = localStorage.getItem("user")
+  var initialStateUser = false
+  if (initialStateLoggedInUser) {
+    initialStateUser = initialStateLoggedInUser.username    
+  }
   var stackOfXhr = {}
   // libraries
   var gun = Gun()
@@ -163,12 +168,29 @@ const client = settings => {
     })
   }
   function renewToken() {
-    var loggedInUser = localStorage.getItem("user")
-    if (loggedInUser && loggedInUser._accessToken) {
-      poster({}, "/auth/refresh", loggedInUser._accessToken).then(
-          
-    
-      )
+    var user = localStorage.getItem("user")
+    if (user && user._accessToken) {
+      poster({}, "/auth/refresh", loggedInUser._accessToken).then(res => {
+        if (settings.log){ console.log(res) }
+        // duration 
+        // user
+        if (JSON.parse(res).data && JSON.parse(res).data.token) {
+          var token = JSON.parse(res).data.token
+          var duration = JSON.parse(res).data.duration
+          var renew = Date.now() + (duration / 2 * 1000)
+
+          API.isLoggedIn = user.username
+
+          localStorage.setItem('user', JSON.stringify({
+            mapTo: "users." + user.username,
+            username: user.username,
+            _localToken: user.localToken, // to encrypt with when logged out
+            _accessToken: token, // to access server 
+            userHash: userHash,
+            renew: renew,
+          }))
+        }
+      })
     }
   }
   function poster(payload, path, accessToken) {
@@ -295,6 +317,7 @@ const client = settings => {
   }
   if (settings && settings.worldUrl) {
     const API = {
+      isLoggedIn: initialStateUser,
       create: args => {
         var loggedInUser = localStorage.getItem("user")
         if (args.params.user && !loggedInUser) {

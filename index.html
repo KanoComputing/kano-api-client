@@ -36,6 +36,7 @@ API.create({
 })
 // setTimeout(API.logout, 5000)
 setTimeout( _ => {
+  console.log(API.isLoggedIn)
   API.login({
     params: {
       username: "nectarsoft",
@@ -49,6 +50,6 @@ setTimeout( _ => {
   }).catch(err => {
     console.error(err)
   })
-}, 10000)
+}, 5000)
 
 </script>
