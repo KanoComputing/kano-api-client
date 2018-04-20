@@ -30,7 +30,7 @@ const client = settings => {
           return loggedInUser.username
         } else if (query === "user._localToken") {
           return loggedInUser._localToken
-        } else {
+        } else if (query.startsWith("user.")) {
           queryRun = query.replace("user", loggedInUser.mapTo)
         } 
       } else if (query.startsWith("user.")) {
@@ -136,7 +136,7 @@ const client = settings => {
           reject("offline")
         }
         getter("user._accessToken").then(accessToken => {
-          var xhr = new XMLHttpRequest();
+          var xhr = new XMLHttpRequest()
           xhr.withCredentials = true
  
           xhr.addEventListener("readystatechange", function () {
@@ -162,16 +162,26 @@ const client = settings => {
       }
     })
   }
-  function poster(payload, path) {
+  function renewToken() {
+    var loggedInUser = localStorage.getItem("user")
+    if (loggedInUser && loggedInUser._accessToken) {
+      poster({}, "/auth/refresh", loggedInUser._accessToken).then(
+          
+    
+      )
+    }
+  }
+  function poster(payload, path, accessToken) {
     return new Promise((resolve, reject) => {
       if (!navigator.onLine) {
         reject("offline")
       }
-      var xhr = new XMLHttpRequest();
+      var xhr = new XMLHttpRequest()
 
       xhr.addEventListener("readystatechange", function () {
         if (this.readyState === 4) {
           if (this.responseText) {
+            onIdle(1000, 10).then(renewToken)
             resolve(this.responseText)
           } else {
             reject()
@@ -184,7 +194,9 @@ const client = settings => {
       xhr.setRequestHeader('Accept', 'application/json')
       xhr.setRequestHeader('Content-Type', 'application/json')
       xhr.setRequestHeader("cache-control", "no-cache")
-      
+      if (accessToken) {
+        xhr.setRequestHeader("authorization", "Bearer "+accessToken)
+      }
       xhr.send(JSON.stringify( payload ))
     })
   }
@@ -252,7 +264,7 @@ const client = settings => {
     return sha256(username + password).then(localhash => {
       return crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"])
     }).then( key => {
-      return sha256(args.params.username).then(userSHA => {
+      return sha256(username).then(userSHA => {
         var data = localStorage.getItem(arrayToBase64String(userSHA))
         localStorage.removeItem(arrayToBase64String(userSHA))
         if (data) {
@@ -289,16 +301,19 @@ const client = settings => {
           if (args.params.user.username && args.params.user.password && args.params.user.email) {
             if (!args.params.user.erole) {args.params.user.erole = "notset"}
           //  if (!args.params.user.epurpose) {args.params.user.epurpose = "notset"}
-            return poster(args.params.user,"/accounts").then(user => {
-              if (settings.log){ console.log(user)}
+            return poster(args.params.user,"/accounts").then(res => {
+              if (settings.log){ console.log(res) }
               // duration 
               // user
               if (JSON.parse(res).data && JSON.parse(res).data.token) {
                 var token = JSON.parse(res).data.token
                 var duration = JSON.parse(res).data.duration
+                var renew = Date.now() + (duration / 2 * 1000)
                 var user = JSON.parse(res).data.user
 
-                makeLocalToken(username, password).then( localToken => { 
+                API.isLoggedIn = args.params.user.username
+
+                makeLocalToken(args.params.user.username, args.params.user.password).then( localToken => { 
                   sha256(args.params.user.username).then( userHash => {
                     userHash = arrayToBase64String(userHash)
                     localStorage.setItem('user', JSON.stringify({
@@ -307,6 +322,7 @@ const client = settings => {
                       _localToken: localToken, // to encrypt with when logged out
                       _accessToken: token, // to access server 
                       userHash: userHash,
+                      renew: renew,
                     }))
                   })
                 })
@@ -392,6 +408,11 @@ const client = settings => {
             return makeLocalToken.then( localToken => {
               poster(args.params,"/accounts/auth").then(res => {
                 var token = JSON.parse(res).data.token
+                var duration = JSON.parse(res).data.duration
+                var renew = Date.now() + (duration / 2 * 1000)
+                
+                API.isLoggedIn = args.params.username
+
                 sha256(args.params.username).then( userHash => {
                   userHash = arrayToBase64String(userHash)
                   localStorage.setItem('user',JSON.stringify({
@@ -400,6 +421,7 @@ const client = settings => {
                     _localToken: localToken, // to encrypt with when logged out
                     _accessToken: token, // to access server 
                     userHash: userHash,
+                    renew: renew,
                   }))
                 })
                 return API.read({populate:args.populate})
@@ -428,6 +450,7 @@ const client = settings => {
                 localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted))
                 localStorage.removeItem('user')
               })
+              API.isLoggedIn = false
             }).catch(function(err){
               console.error(err)
             })
