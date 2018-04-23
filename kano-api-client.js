@@ -30,16 +30,20 @@ const client = settings => {
       var queryRun = query 
       if (loggedInUser) {
         if ("user._accessToken" == query) { 
-          return loggedInUser._accessToken
+          resolve(loggedInUser._accessToken)
+          return
         } else if (query === "user.username") {
-          return loggedInUser.username
+          resolve(loggedInUser.username)
+          return 
         } else if (query === "user._localToken") {
-          return loggedInUser._localToken
+          resolve(loggedInUser._localToken)
+          return
         } else if (query.startsWith("user.") || query == "user") {
           queryRun = query.replace("user", loggedInUser.mapTo)
         } 
       } else if (query.startsWith("user.")) {
-        return undefined
+        resolve(undefined)
+        return
       }
       queryRun.split(".*")[0].split(".").reduce((db,val) => { // TODO use "gun load"  if ".*"
         return db.get(val)
@@ -153,9 +157,9 @@ const client = settings => {
           xhr.withCredentials = true
  
           xhr.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
+            if (this.readyState === 4 && this.status < 300) {
               if (this.responseText) {
-		var responseText = this.responseText
+                var responseText = this.responseText
                 stackOfXhr[path].forEach(function(resolved) {
                   resolved(responseText)
                 })
@@ -177,8 +181,9 @@ const client = settings => {
   }
   function renewToken() {
     var user = JSON.parse(localStorage.getItem("user"))
-    if (user && user.renew < Date.now() && user._accessToken) {
-      poster({}, "/accounts/auth/refresh", user._accessToken).then(res => {
+    if (user && (user.renew < Date.now() || true ) && user._accessToken) {
+      getDataFromServer("/accounts/auth/refresh").then(res => {
+
         if (settings.log){ console.log(res) }
         // duration 
         // user
