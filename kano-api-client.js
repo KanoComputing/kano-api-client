@@ -177,7 +177,7 @@ const client = settings => {
   }
   function renewToken() {
     var user = JSON.parse(localStorage.getItem("user"))
-    if (user && user._accessToken) {
+    if (user && user.renew < Date.now() && user._accessToken) {
       poster({}, "/accounts/auth/refresh", user._accessToken).then(res => {
         if (settings.log){ console.log(res) }
         // duration 
@@ -210,11 +210,11 @@ const client = settings => {
 
       xhr.addEventListener("readystatechange", function () {
         if (this.readyState === 4) {
-          if (this.responseText) {
+          if (this.responseText && this.status < 300) {
             onIdle(1000, 10).then(renewToken)
             resolve(this.responseText)
           } else {
-            reject()
+            reject(this.statusText, this.status)
           }
         }
       })
