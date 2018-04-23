@@ -22,6 +22,18 @@ here's an example with `login`.
 
 
 ```
+API.Create({
+{params:{
+  user:{ 
+    username:"bananabanana2", 
+    password:".x&6,-U7ZG&`}c?h",
+    email:"bb@kano.me"
+  },
+  populate:{
+    id:"user.id"
+  }
+}) == {id:"123456789aoeuidhtn"}
+or
 API.login({
   params: {
     username: "nectarsoft",
