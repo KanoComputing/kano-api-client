@@ -26,7 +26,7 @@ const client = settings => {
   }
   function getter(query,params,sync){
     return new Promise((resolve, reject) => {
-      var loggedInUser = localStorage.getItem("user")
+      var loggedInUser = JSON.parse(localStorage.getItem("user"))
       var queryRun = query 
       if (loggedInUser) {
         if ("user._accessToken" == query) { 
@@ -35,7 +35,7 @@ const client = settings => {
           return loggedInUser.username
         } else if (query === "user._localToken") {
           return loggedInUser._localToken
-        } else if (query.startsWith("user.")) {
+        } else if (query.startsWith("user.") || query == "user") {
           queryRun = query.replace("user", loggedInUser.mapTo)
         } 
       } else if (query.startsWith("user.")) {
@@ -87,9 +87,9 @@ const client = settings => {
     }))
   }
   function setter(query, valueToSet, params) {
-    var loggedInUser = localStorage.getItem("user")
+    var loggedInUser = JSON.parse(localStorage.getItem("user"))
     if (loggedInUser) {
-      if (query.startsWith("user")) {
+      if (query.startsWith("user.") || query == "user") {
         query = query.replace("user", loggedInUser.mapTo)
       }
     }
@@ -176,9 +176,9 @@ const client = settings => {
     })
   }
   function renewToken() {
-    var user = localStorage.getItem("user")
+    var user = JSON.parse(localStorage.getItem("user"))
     if (user && user._accessToken) {
-      poster({}, "/auth/refresh", loggedInUser._accessToken).then(res => {
+      poster({}, "/auth/refresh", user._accessToken).then(res => {
         if (settings.log){ console.log(res) }
         // duration 
         // user
@@ -344,10 +344,10 @@ const client = settings => {
 
                 API.isLoggedIn = args.params.user.username
 
-                makeLocalToken(args.params.user.username, args.params.user.password).then( localToken => { 
-                  sha256(args.params.user.username).then( userHash => {
+                return makeLocalToken(args.params.user.username, args.params.user.password).then( localToken => { 
+                  return sha256(args.params.user.username).then( userHash => {
                     userHash = arrayToBase64String(userHash)
-                    localStorage.setItem('user', JSON.stringify({
+                    return localStorage.setItem('user', JSON.stringify({
                       mapTo: "users." + args.params.user.username,
                       username: args.params.user.username,
                       _localToken: localToken, // to encrypt with when logged out
@@ -356,12 +356,15 @@ const client = settings => {
                       renew: renew,
                     }))
                   })
+                }).then(_ => {
+                  args.params = { 
+                    user: user 
+                  } 
+                  return API.update(args)
                 })
+              } else {
+                throw res
               }
-              args.params = {
-                user: user
-              }
-              return API.update(args)  
             }).catch(err => {
               console.error("error create user", err)
             })
