@@ -178,7 +178,7 @@ const client = settings => {
   function renewToken() {
     var user = JSON.parse(localStorage.getItem("user"))
     if (user && user._accessToken) {
-      poster({}, "/auth/refresh", user._accessToken).then(res => {
+      poster({}, "/accounts/auth/refresh", user._accessToken).then(res => {
         if (settings.log){ console.log(res) }
         // duration 
         // user
