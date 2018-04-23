@@ -13,7 +13,7 @@ const API = client({
 API.create({
   params: {
     user: {
-      username: "test" + Math.random(),
+      username: "test" + (Math.random()+"").replace(".",""),
       email: "marcus@kano.me",
       password: "342340bab5uxexeuee4",
     }
