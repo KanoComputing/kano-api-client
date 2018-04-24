@@ -445,7 +445,7 @@ const client = settings => {
             if (!args.params.password) {
               throw "need a password e.g. {username: 'marcus7777', password: 'monkey123'}"
             }
-            return makeLocalToken.then( localToken => {
+            return makeLocalToken(await user.username, await user.password).then( localToken => {
               poster(args.params,"/accounts/auth").then(res => {
                 var token = JSON.parse(res).data.token
                 var duration = JSON.parse(res).data.duration
