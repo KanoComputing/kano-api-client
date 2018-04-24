@@ -49,9 +49,9 @@ const client = settings => {
         return db.get(val)
       }, gun).once(data => {
         if (sync && data === undefined) { //
-          if (query.startsWith("users.")) {
-            var user = gun.get("users").get(loggedInUser.userHash)
-            getDataFromServer("/users/me").then(serverRes => { 
+          if (query.startsWith("users.")) { // 
+            var user = gun.get("users").get(query.split(".")[1])
+            getDataFromServer("/users/?username=" + query.split(".")[1]).then(serverRes => { 
               var serverData = JSON.parse(serverRes, (key, value) => {
                 if (Array.isArray(value)) {
                   value = value.reduce((accumulator, currentValue, currentIndex) => {
@@ -64,6 +64,9 @@ const client = settings => {
               Object.keys(serverData.data).map( key => {
                 user.get(key.replace("_","")).put(serverData.data[key])
               })
+              if (serverData.data.id) {
+                gun.get("users").get(serverData.data.id).set(user)
+              }
             }).then( _ => {
               query.split(".").reduce((db,val) => {
                 return db.get(val)
@@ -302,12 +305,12 @@ const client = settings => {
     }).then( key => {
       return sha256(username).then(userSHA => {
         var data = localStorage.getItem(arrayToBase64String(userSHA))
-        localStorage.removeItem(arrayToBase64String(userSHA))
         if (data) {
+          localStorage.removeItem(arrayToBase64String(userSHA))
           window.crypto.subtle.decrypt(
             {
               name: "AES-CBC",
-              iv: window.crypto.getRandomValues(new Uint8Array(16)) // iv, //The initialization vector you used to encrypt
+              iv: window.crypto.getRandomValues(new Uint8Array(16)) //The initialization vector you used to encrypt
             },
             key, //from generateKey or importKey above
             str2ab(data) //ArrayBuffer of the data

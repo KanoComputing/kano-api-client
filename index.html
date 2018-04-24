@@ -17,23 +17,21 @@ API.create({
       email: "marcus@kano.me",
       password: "342340bab5uxexeuee4",
     }
-  },
-  populate:{
-    id: "user.id",
-    ui: {
-      followers: {
-        list: "user.followers"
-      },
-      following: {
-        list: "user.following"
-      },
-    }
-  },
-}).then(user => {
-  console.log(user)  
+  }
+}).then(_ => {
+  console.log(_)  
 }).catch(err => {
   console.error(err)
+}).then(_ => {
+  return API.read({
+    populate:{
+      id: "user.id",
+    },
+  })
 })
+
+
+
 // setTimeout(API.logout, 5000)
 setTimeout( _ => {
   console.log(API.isLoggedIn)
