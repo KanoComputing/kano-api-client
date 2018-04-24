@@ -470,6 +470,7 @@ const client = settings => {
               if (err === "offline") {
                 return API.read(args)
               }
+              throw err
               console.error(err)
             })
           // TODO  if logged in as something else
