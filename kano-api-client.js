@@ -453,7 +453,7 @@ const client = settings => {
                 
                 API.isLoggedIn = args.params.username
 
-                sha256(args.params.username).then( userHash => {
+                return sha256(args.params.username).then( userHash => {
                   userHash = arrayToBase64String(userHash)
                   localStorage.setItem('user',JSON.stringify({
                     mapTo: "users." + args.params.username, 
@@ -463,8 +463,9 @@ const client = settings => {
                     userHash: userHash,
                     renew: renew,
                   }))
+                }).then( _ => {
+                  return API.read({populate:args.populate})
                 })
-                return API.read({populate:args.populate})
               })
             }).catch( err => {
               if (err === "offline") {
