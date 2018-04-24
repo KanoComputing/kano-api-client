@@ -154,8 +154,9 @@ const client = settings => {
         }
         getter("user._accessToken").then(accessToken => {
           var xhr = new XMLHttpRequest()
-          xhr.withCredentials = true
- 
+          if (accessToken) {
+            xhr.withCredentials = true
+          }
           xhr.addEventListener("readystatechange", function () {
             if (this.readyState === 4 && this.status < 300) {
               if (this.responseText) {
@@ -172,7 +173,9 @@ const client = settings => {
           xhr.open("GET", settings.worldUrl + path)
           xhr.setRequestHeader("content-type", "application/json")
           xhr.setRequestHeader("accept", "application/json")
-          xhr.setRequestHeader("authorization", "Bearer "+accessToken)
+          if (accessToken) {
+            xhr.setRequestHeader("authorization", "Bearer "+accessToken)
+          }
           if (settings.log){ console.log("get", path ) }
           xhr.send({})
         })
