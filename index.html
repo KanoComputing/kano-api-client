@@ -28,26 +28,28 @@ API.create({
       id: "user.id",
     },
   })
+}).then( id => {
+  console.log( id )  
 })
 
 
 
 // setTimeout(API.logout, 5000)
-setTimeout( _ => {
-  console.log(API.isLoggedIn)
-  API.login({
-    params: {
-      username: "nectarsoft",
-      password: "Chupand0nectar",
-    },
-    populate:{
-      id: "user.id",
-    },
-  }).then(user => {
-    console.log(user)
-  }).catch(err => {
-    console.error(err)
-  })
-}, 5000)
+//setTimeout( _ => {
+  //console.log(API.isLoggedIn)
+  //API.login({
+    //params: {
+      //username: "nectarsoft",
+      //password: "Chupand0nectar",
+    //},
+    //populate:{
+      //id: "user.id",
+    //},
+  //}).then(user => {
+    //console.log(user)
+  //}).catch(err => {
+    //console.error(err)
+  //})
+//}, 5000)
 
 </script>
