@@ -63,6 +63,6 @@ logout which doesn't take any arguments
 API.logout()
 ```
 ### expose value
-```
+```js
 API.isLoggedIn
 ```
