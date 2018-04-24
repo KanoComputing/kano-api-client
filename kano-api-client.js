@@ -446,7 +446,7 @@ const client = settings => {
               throw "need a password e.g. {username: 'marcus7777', password: 'monkey123'}"
             }
             return makeLocalToken(await user.username, await user.password).then( localToken => {
-              poster(args.params,"/accounts/auth").then(res => {
+              return poster(args.params,"/accounts/auth").then(res => {
                 var token = JSON.parse(res).data.token
                 var duration = JSON.parse(res).data.duration
                 var renew = Date.now() + (duration / 2 * 1000)
