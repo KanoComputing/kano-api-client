@@ -64,5 +64,5 @@ API.logout()
 ```
 ### expose value
 ```js
-API.isLoggedIn
+API.isLoggedIn // false or username (if logged in)
 ```
