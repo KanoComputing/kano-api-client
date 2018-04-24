@@ -184,7 +184,7 @@ const client = settings => {
   }
   function renewToken() {
     var user = JSON.parse(localStorage.getItem("user"))
-    if (user && (user.renew < Date.now() || true ) && user._accessToken) {
+    if (user && user.renew < Date.now() && user._accessToken) {
       getDataFromServer("/accounts/auth/refresh").then(res => {
 
         if (settings.log){ console.log(res) }
@@ -194,8 +194,6 @@ const client = settings => {
           var token = JSON.parse(res).data.token
           var duration = JSON.parse(res).data.duration
           var renew = Date.now() + (duration / 2 * 1000)
-
-          API.isLoggedIn = user.username
 
           localStorage.setItem('user', JSON.stringify({
             mapTo: "users." + user.username,
