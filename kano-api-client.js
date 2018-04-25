@@ -340,7 +340,7 @@ const client = (settings) => {
         const API = {
             isLoggedIn: initialStateUser,
             check: (query) => {
-                return getter(query, 'check', true);
+                return getter(query, 'check', true).then(data => !!data);
             },
             create: (args) => {
                 const loggedInUser = localStorage.getItem('user');
