@@ -226,7 +226,7 @@ const client = (settings) => {
             reject('offline');
         }
         const url = settings.worldUrl + path
-        theFetch = {
+        let theFetch = {
             body: JSON.stringify(data), // must match 'Content-Type' header
             headers: {
                 'content-type': 'application/json',
