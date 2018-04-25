@@ -241,7 +241,13 @@ const client = (settings) => {
             theFetch.headers.authorization = `Bearer ${accessToken}`
         }
         return fetch(url, theFetch).then(response => {
-          return response.json()
+          return response.json().then(data => {
+            if (response.status < 300) {
+              return data
+            } else {
+              throw "no post"
+            }
+          })
         })
     }
     function sha256(str) {
@@ -355,11 +361,11 @@ const client = (settings) => {
                             if (settings.log) { console.log(res); }
                             // duration
                             // user
-                            if (JSON.parse(res).data && JSON.parse(res).data.token) {
-                                const token = JSON.parse(res).data.token;
-                                const duration = JSON.parse(res).data.duration;
+                            if (res.data && res.data.token) {
+                                const token = res.data.token;
+                                const duration = res.data.duration;
                                 const renew = Date.now() + ((duration / 2) * 1000);
-                                const user = JSON.parse(res).data.user;
+                                const user = res.data.user;
 
                                 API.isLoggedIn = user.username;
 
@@ -460,8 +466,8 @@ const client = (settings) => {
                             await user.password
                         ).then((localToken) => {
                             return poster(args.params, '/accounts/auth').then((res) => {
-                                const token = JSON.parse(res).data.token;
-                                const duration = JSON.parse(res).data.duration;
+                                const token = res.data.token;
+                                const duration = res.data.duration;
                                 const renew = Date.now() + ((duration / 2) * 1000);
 
                                 API.isLoggedIn = args.params.username;
