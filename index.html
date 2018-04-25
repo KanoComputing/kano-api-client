@@ -25,6 +25,7 @@ API.create({
 }).then(_ => {
   return API.read({
     populate:{
+      name: "user.username",
       id: "user.id",
     },
   })
@@ -34,22 +35,23 @@ API.create({
 
 
 
-// setTimeout(API.logout, 5000)
-//setTimeout( _ => {
-  //console.log(API.isLoggedIn)
-  //API.login({
-    //params: {
-      //username: "nectarsoft",
-      //password: "Chupand0nectar",
-    //},
-    //populate:{
-      //id: "user.id",
-    //},
-  //}).then(user => {
-    //console.log(user)
-  //}).catch(err => {
-    //console.error(err)
-  //})
-//}, 5000)
+setTimeout(API.logout, 5000)
+
+setTimeout( _ => {
+  console.log(API.isLoggedIn)
+  API.login({
+    params: {
+      username: "nectarsoft",
+      password: "Chupand0nectar",
+    },
+    populate:{
+      id: "user.id",
+    },
+  }).then(user => {
+    console.log(user)
+  }).catch(err => {
+    console.error(err)
+  })
+}, 6000)
 
 </script>

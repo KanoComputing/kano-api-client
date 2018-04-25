@@ -363,14 +363,15 @@ const client = (settings) => {
                                 const token = res.data.token;
                                 const duration = res.data.duration;
                                 const renew = Date.now() + ((duration / 2) * 1000);
-                                const user = res.data.user;
+                                const user = Object.assign({args.params.user }, res.data.user)
+                                
+                                if (user.username) {
+                                  API.isLoggedIn = args.params.user.username;
 
-                                API.isLoggedIn = user.username;
-
-                                return makeLocalToken(
+                                  return makeLocalToken(
                                     user.username,
-                                    user.password
-                                ).then((localToken) => {
+                                    user.password,
+                                  ).then((localToken) => {
                                     return sha256(user.username).then((hash) => {
                                         const userHash = arrayToBase64(hash);
                                         return localStorage.setItem('user', JSON.stringify({
@@ -382,12 +383,13 @@ const client = (settings) => {
                                             renew
                                         }));
                                     });
-                                }).then(() => {
+                                  }).then(() => {
                                     args.params = {
                                         user
                                     };
                                     return API.update(args);
-                                });
+                                  });
+                                }
                             }
                             throw res;
                         }).catch((err) => {
