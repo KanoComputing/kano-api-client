@@ -245,7 +245,7 @@ const client = (settings) => {
                 if (response.status < 300) {
                     return data;
                 }
-                throw 'no post';
+                throw new Error('no post');
             });
         });
     }
@@ -446,10 +446,10 @@ const client = (settings) => {
             },
             login: (args) => {
                 if (!args.params) {
-                    throw "need params e.g. API.login({params: {username: 'marcus7777', password: 'monkey123'}})";
+                    throw new Error("need params e.g. API.login({params: {username: 'marcus7777', password: 'monkey123'}})");
                 }
                 if (!args.params.username) {
-                    throw "need a username e.g. {username: 'marcus7777', password: 'monkey123'}";
+                    throw new Error("need a username e.g. {username: 'marcus7777', password: 'monkey123'}");
                 }
                 args.params.username = args.params.username.toLowerCase();
 
@@ -460,7 +460,7 @@ const client = (settings) => {
                     }
                     if (await user.username === undefined) {
                         if (!args.params.password) {
-                            throw "need a password e.g. {username: 'marcus7777', password: 'monkey123'}";
+                            throw new Error("need a password e.g. username: 'marcus7777', password: 'monkey123'");
                         }
                         return makeLocalToken(
                             await user.username,
