@@ -14,7 +14,7 @@ const client = (settings) => {
     function ifArray(data) {
         if (typeof data === 'object' && Object.keys(data).length && '012345678910'.startsWith(Object.keys(data).join('').slice(0, -1))) {
             return Object.keys(data).reduce((a, v) => {
-                if (v !== '_' && v == +v) {
+                if (v !== '_' && v === +v) {
                     a.push(v);
                 }
                 return a;
@@ -29,7 +29,7 @@ const client = (settings) => {
             const loggedInUser = JSON.parse(localStorage.getItem('user'));
             let queryRun = query;
             if (loggedInUser) {
-                if (query == 'user._accessToken') {
+                if (query === 'user._accessToken') {
                     resolve(loggedInUser._accessToken);
                     return;
                 } else if (query === 'user.username') {
@@ -38,7 +38,7 @@ const client = (settings) => {
                 } else if (query === 'user._localToken') {
                     resolve(loggedInUser._localToken);
                     return;
-                } else if (query.startsWith('user.') || query == 'user') {
+                } else if (query.startsWith('user.') || query === 'user') {
                     queryRun = query.replace('user', loggedInUser.mapTo);
                 }
             } else if (query.startsWith('user.')) {
@@ -52,12 +52,12 @@ const client = (settings) => {
                     if (query.startsWith('users.')) { //
                         const username = query.split('.')[1];
                         const user = gun.get('users').get(query.split('.')[1]);
-                        if (params === 'check' && query.split('.').length == 2) {
+                        if (params === 'check' && query.split('.').length === 2) {
                             getDataFromServer(`/accounts/checkUsernameExists/${username}`).then((serverRes) => {
-                                const data = JSON.parse(serverRes).data
+                                const data = JSON.parse(serverRes).data;
                                 resolve(data);
                                 if (data) {
-                                  user.set({})
+                                    user.set({});
                                 }
                             });
                         } else {
@@ -82,7 +82,10 @@ const client = (settings) => {
                                 });
                             }).then(() => {
                                 resolve(ifArray(data));
-                            });
+                            })
+                                .catch((e) => {
+                                    reject(e);
+                                });
                         }
                     }
                 } else {
@@ -104,7 +107,7 @@ const client = (settings) => {
     function setter(query, valueToSet, params) {
         const loggedInUser = JSON.parse(localStorage.getItem('user'));
         if (loggedInUser) {
-            if (query.startsWith('user.') || query == 'user') {
+            if (query.startsWith('user.') || query === 'user') {
                 query = query.replace('user', loggedInUser.mapTo);
             }
         }
@@ -204,7 +207,7 @@ const client = (settings) => {
                 if (JSON.parse(res).data && JSON.parse(res).data.token) {
                     const token = JSON.parse(res).data.token;
                     const duration = JSON.parse(res).data.duration;
-                    const renew = Date.now() + (duration / 2 * 1000);
+                    const renew = Date.now() + ((duration / 2) * 1000);
 
                     localStorage.setItem('user', JSON.stringify({
                         mapTo: `users.${user.username}`,
@@ -225,7 +228,7 @@ const client = (settings) => {
             }
             const xhr = new XMLHttpRequest();
 
-            xhr.addEventListener('readystatechange', function () {
+            xhr.addEventListener('readystatechange', () => {
                 if (this.readyState === 4) {
                     if (this.responseText && this.status < 300) {
                         onIdle(1000, 10).then(renewToken);
@@ -350,18 +353,18 @@ const client = (settings) => {
             create: (args) => {
                 const loggedInUser = localStorage.getItem('user');
                 if (args.params.user && !loggedInUser) {
-                    const user = args.params.user;
-                    if (user.username && user.password && user.email) {
-                        if (!user.erole) { user.erole = 'notset'; }
+                    const argUser = args.params.user;
+                    if (argUser.username && argUser.password && argUser.email) {
+                        if (!argUser.erole) { argUser.erole = 'notset'; }
                         //  if (!args.params.user.epurpose) {args.params.user.epurpose = "notset"}
-                        return poster(args.params.user, '/accounts').then((res) => {
+                        return poster(argUser, '/accounts').then((res) => {
                             if (settings.log) { console.log(res); }
                             // duration
                             // user
                             if (JSON.parse(res).data && JSON.parse(res).data.token) {
                                 const token = JSON.parse(res).data.token;
                                 const duration = JSON.parse(res).data.duration;
-                                const renew = Date.now() + (duration / 2 * 1000);
+                                const renew = Date.now() + ((duration / 2) * 1000);
                                 const user = JSON.parse(res).data.user;
 
                                 API.isLoggedIn = user.username;
@@ -370,8 +373,8 @@ const client = (settings) => {
                                     user.username,
                                     user.password
                                 ).then((localToken) => {
-                                    return sha256(user.username).then((userHash) => {
-                                        userHash = arrayToBase64(userHash);
+                                    return sha256(user.username).then((hash) => {
+                                        userHash = arrayToBase64(hash);
                                         return localStorage.setItem('user', JSON.stringify({
                                             mapTo: `users.${user.username}`,
                                             username: user.username,
@@ -400,7 +403,7 @@ const client = (settings) => {
                     const allThePromises = [];
                     const allThePromisesKeys = [];
                     const bulid = JSON.parse(JSON.stringify(args.populate), (_, value) => {
-                        if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
+                        if (typeof value === 'string' && /^[_a-z0-9\-\.]*$/i.test(value)) {
                             if (settings.resolve) {
                                 allThePromisesKeys.push(value);
                                 allThePromises.push(getter(value, args.params, args.sync));
@@ -412,9 +415,8 @@ const client = (settings) => {
                     });
                     if (settings.resolve) {
                         return Promise.all(allThePromises).then((values) => {
-                            const i = values.length - 1;
                             return JSON.parse(JSON.stringify(args.populate), (_, value) => {
-                                if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
+                                if (typeof value === 'string' && /^[_a-z0-9\-\.]*$/i.test(value)) {
                                     return values[allThePromisesKeys.indexOf(value)];
                                 }
                                 return value;
@@ -466,12 +468,12 @@ const client = (settings) => {
                             return poster(args.params, '/accounts/auth').then((res) => {
                                 const token = JSON.parse(res).data.token;
                                 const duration = JSON.parse(res).data.duration;
-                                const renew = Date.now() + (duration / 2 * 1000);
+                                const renew = Date.now() + ((duration / 2) * 1000);
 
                                 API.isLoggedIn = args.params.username;
 
-                                return sha256(args.params.username).then((userHash) => {
-                                    userHash = arrayToBase64(userHash);
+                                return sha256(args.params.username).then((userHashAb) => {
+                                    const userHash = arrayToBase64(userHashAb);
                                     localStorage.setItem('user', JSON.stringify({
                                         mapTo: `users.${args.params.username}`,
                                         username: args.params.username,
@@ -502,7 +504,7 @@ const client = (settings) => {
                 });
             },
             logout: () => {
-                getter('user._localToken').then((localToken) => {
+                return getter('user._localToken').then((localToken) => {
                     if (localToken) {
                         const ls = localStorage;
                         encryptString(localToken, ls.getItem('user')).then((encrypted) => {
