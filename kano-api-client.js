@@ -374,7 +374,7 @@ const client = (settings) => {
                                     user.password
                                 ).then((localToken) => {
                                     return sha256(user.username).then((hash) => {
-                                        userHash = arrayToBase64(hash);
+                                        const userHash = arrayToBase64(hash);
                                         return localStorage.setItem('user', JSON.stringify({
                                             mapTo: `users.${user.username}`,
                                             username: user.username,
