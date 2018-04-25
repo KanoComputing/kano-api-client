@@ -112,14 +112,16 @@ const client = (settings) => {
             return getter(query).then((data) => {
                 newValue = data;
             });
-        }).then(() => {
-            if (oldValue == !undefined && JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
-            // add to postList
-                if (settings.log) { console.log('needs sync', newValue); }
-            } else if (settings.log) { console.log('In sync', newValue); }
-        }).then(() => {
-            return newValue;
-        });
+        })
+            .then(() => {
+                if (oldValue == !undefined && JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+                    // add to postList
+                    if (settings.log) { console.log('needs sync', newValue); }
+                } else if (settings.log) { console.log('In sync', newValue); }
+            })
+            .then(() => {
+                return newValue;
+            });
     }
     function onIdle(itime, doAfter) {
         return new Promise((resolve, reject) => {
@@ -481,7 +483,7 @@ const client = (settings) => {
                 getter('user._localToken').then((localToken) => {
                     if (localToken) {
                         encryptString(localToken, localStorage.getItem('user')).then((encrypted) => {
-                            sha256(user.username).then((userSHA) => {
+                            sha256(localStorage.user.username).then((userSHA) => {
                                 localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted));
                                 localStorage.removeItem('user');
                             });
