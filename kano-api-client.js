@@ -223,7 +223,7 @@ const client = (settings) => {
     }
     function poster(data, path, accessToken) {
         if (!navigator.onLine) {
-            reject('offline');
+          throw new Error('offline');
         }
         const url = settings.worldUrl + path;
         const theFetch = {
@@ -363,32 +363,32 @@ const client = (settings) => {
                                 const token = res.data.token;
                                 const duration = res.data.duration;
                                 const renew = Date.now() + ((duration / 2) * 1000);
-                                const user = Object.assign(args.params.user, res.data.user)
-                                
-                                if (user.username) {
-                                  API.isLoggedIn = args.params.user.username;
+                                const user = Object.assign(args.params.user, res.data.user);
 
-                                  return makeLocalToken(
-                                    user.username,
-                                    user.password,
-                                  ).then((localToken) => {
-                                    return sha256(user.username).then((hash) => {
-                                        const userHash = arrayToBase64(hash);
-                                        return localStorage.setItem('user', JSON.stringify({
-                                            mapTo: `users.${user.username}`,
-                                            username: user.username,
-                                            _localToken: localToken,
-                                            _accessToken: token, // to access server
-                                            userHash,
-                                            renew
-                                        }));
+                                if (user.username) {
+                                    API.isLoggedIn = args.params.user.username;
+
+                                    return makeLocalToken(
+                                        user.username,
+                                        user.password,
+                                    ).then((localToken) => {
+                                        return sha256(user.username).then((hash) => {
+                                            const userHash = arrayToBase64(hash);
+                                            return localStorage.setItem('user', JSON.stringify({
+                                                mapTo: `users.${user.username}`,
+                                                username: user.username,
+                                                _localToken: localToken,
+                                                _accessToken: token, // to access server
+                                                userHash,
+                                                renew
+                                            }));
+                                        });
+                                    }).then(() => {
+                                        args.params = {
+                                            user
+                                        };
+                                        return API.update(args);
                                     });
-                                  }).then(() => {
-                                    args.params = {
-                                        user
-                                    };
-                                    return API.update(args);
-                                  });
                                 }
                             }
                             throw res;
