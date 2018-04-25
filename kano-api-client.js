@@ -221,34 +221,28 @@ const client = (settings) => {
             });
         }
     }
-    function poster(payload, path, accessToken) {
-        return new Promise((resolve, reject) => {
-            if (!navigator.onLine) {
-                reject('offline');
-            }
-            const xhr = new XMLHttpRequest();
-
-            xhr.addEventListener('readystatechange', () => {
-                if (this.readyState === 4) {
-                    if (this.responseText && this.status < 300) {
-                        onIdle(1000, 10).then(renewToken);
-                        resolve(this.responseText);
-                    } else {
-                        reject(this.statusText, this.status);
-                    }
-                }
-            });
-
-            xhr.open('POST', settings.worldUrl + path);
-
-            xhr.setRequestHeader('Accept', 'application/json');
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.setRequestHeader('cache-control', 'no-cache');
-            if (accessToken) {
-                xhr.setRequestHeader('authorization', `Bearer ${accessToken}`);
-            }
-            xhr.send(JSON.stringify(payload));
-        });
+    function poster(data, path, accessToken) {
+        if (!navigator.onLine) {
+            reject('offline');
+        }
+        const url = settings.worldUrl + path
+        theFetch = {
+            body: JSON.stringify(data), // must match 'Content-Type' header
+            headers: {
+                'content-type': 'application/json',
+                'Accept'      : 'application/json',
+            },
+            method: 'POST',
+            mode: 'cors',
+            redirect: 'follow',
+            referrer: 'no-referrer', 
+        }
+        if (accessToken) {
+            theFetch.headers.authorization = `Bearer ${accessToken}`
+        }
+        return fetch(url, theFetch).then(response => {
+          return response.json()
+        })
     }
     function sha256(str) {
         // We transform the string into an arraybuffer.
