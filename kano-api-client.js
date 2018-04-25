@@ -225,30 +225,29 @@ const client = (settings) => {
         if (!navigator.onLine) {
             reject('offline');
         }
-        const url = settings.worldUrl + path
-        let theFetch = {
+        const url = settings.worldUrl + path;
+        const theFetch = {
             body: JSON.stringify(data), // must match 'Content-Type' header
             headers: {
                 'content-type': 'application/json',
-                'Accept'      : 'application/json',
+                Accept: 'application/json'
             },
             method: 'POST',
             mode: 'cors',
             redirect: 'follow',
-            referrer: 'no-referrer', 
-        }
+            referrer: 'no-referrer'
+        };
         if (accessToken) {
-            theFetch.headers.authorization = `Bearer ${accessToken}`
+            theFetch.headers.authorization = `Bearer ${accessToken}`;
         }
-        return fetch(url, theFetch).then(response => {
-          return response.json().then(data => {
-            if (response.status < 300) {
-              return data
-            } else {
-              throw "no post"
-            }
-          })
-        })
+        return fetch(url, theFetch).then((response) => {
+            return response.json().then((data) => {
+                if (response.status < 300) {
+                    return data;
+                }
+                throw 'no post';
+            });
+        });
     }
     function sha256(str) {
         // We transform the string into an arraybuffer.
@@ -291,8 +290,7 @@ const client = (settings) => {
             return window.crypto.subtle.encrypt({
                 name: 'AES-CBC',
                 iv
-            }, key, str2ab(`12345678${data}`) // add 8 chr due to droppinginitial vector
-            );
+            }, key, str2ab(`12345678${data}`)); // add 8 chr due to droppinginitial vector
         }).then((encrypted) => {
             return ab2str(encrypted);
         });
@@ -399,7 +397,7 @@ const client = (settings) => {
                 }
             },
             read: (args) => {
-              return API._read(Object.assign({ sync: true }, args))
+                return API._read(Object.assign({ sync: true }, args));
             },
             _read: (args) => {
                 if (args.populate) {
@@ -500,9 +498,9 @@ const client = (settings) => {
                     } else if (await user.username === args.params.username) {
                         if (settings.log) { console.log('you are (and were) logged in :)'); }
                     } else if (await user.username !== args.params.username) {
-                      return API.logout().then(() =>{
-                         return API.login(args);
-                      });
+                        return API.logout().then(() => {
+                            return API.login(args);
+                        });
                     }
                     return API.read(Object.assign({ sync: true }, args));
                 });
