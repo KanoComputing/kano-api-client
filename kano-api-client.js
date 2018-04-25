@@ -497,8 +497,9 @@ const client = (settings) => {
                     } else if (await user.username === args.params.username) {
                         if (settings.log) { console.log('you are (and were) logged in :)'); }
                     } else if (await user.username !== args.params.username) {
-                        API.logout();
-                        API.login(args);
+                      return API.logout().then(() =>{
+                         return API.login(args);
+                      });
                     }
                     return API.read(Object.assign({ sync: true }, args));
                 });
