@@ -363,7 +363,7 @@ const client = (settings) => {
                                 const token = res.data.token;
                                 const duration = res.data.duration;
                                 const renew = Date.now() + ((duration / 2) * 1000);
-                                const user = Object.assign({args.params.user }, res.data.user)
+                                const user = Object.assign(args.params.user, res.data.user)
                                 
                                 if (user.username) {
                                   API.isLoggedIn = args.params.user.username;
