@@ -399,7 +399,7 @@ const client = (settings) => {
                 }
             },
             read: (args) => {
-              return API._read(Object.assign({ sync: true }, args)))
+              return API._read(Object.assign({ sync: true }, args))
             },
             _read: (args) => {
                 if (args.populate) {
