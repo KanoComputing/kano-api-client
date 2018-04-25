@@ -50,10 +50,15 @@ const client = (settings) => {
             }, gun).once((data) => {
                 if (sync && data === undefined) { //
                     if (query.startsWith('users.')) { //
+                        const username = query.split('.')[1];
                         const user = gun.get('users').get(query.split('.')[1]);
                         if (params === 'check' && query.split('.').length == 2) {
-                            getDataFromServer('/accounts/checkUsernameExists/{query.split(\'.\')[1]}').then((serverRes) => {
-                                resolve(JSON.parse(serverRes).data);
+                            getDataFromServer(`/accounts/checkUsernameExists/${username}`).then((serverRes) => {
+                                const data = JSON.parse(serverRes).data
+                                resolve(data);
+                                if (data) {
+                                  user.set({})
+                                }
                             });
                         } else {
                             getDataFromServer(`/users/?username=${query.split('.')[1]}`).then((serverRes) => {
@@ -340,7 +345,7 @@ const client = (settings) => {
         const API = {
             isLoggedIn: initialStateUser,
             check: (query) => {
-                return getter(query, 'check', true).then(data => !!data);
+                return getter(query, 'check', true).then((data) => { return !!data; });
             },
             create: (args) => {
                 const loggedInUser = localStorage.getItem('user');
