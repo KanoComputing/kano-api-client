@@ -17,6 +17,8 @@ module.exports = {
         "beforeEach" : false,
         "after"      : false,
         "afterEach"  : false,
-        "expect"     : false
+        "expect"     : false,
+        /* Gun */
+        Gun          : false,
     }
 };

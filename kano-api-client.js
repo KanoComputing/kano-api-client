@@ -1,4 +1,3 @@
-
 import '../gun/gun.js';
 
 const client = (settings) => {
@@ -23,6 +22,45 @@ const client = (settings) => {
             });
         }
         return data;
+    }
+    function getDataFromServer(path) {
+        return new Promise((resolve, reject) => {
+            if (stackOfXhr[path]) {
+                stackOfXhr[path].push(resolve);
+            } else {
+                stackOfXhr[path] = [resolve];
+                if (!navigator.onLine) {
+                    reject('offline');
+                }
+                getter('user._accessToken').then((accessToken) => {
+                    const xhr = new XMLHttpRequest();
+                    if (accessToken) {
+                        xhr.withCredentials = true;
+                    }
+                    xhr.addEventListener('readystatechange', function () {
+                        if (this.readyState === 4 && this.status < 300) {
+                            if (this.responseText) {
+                                const responseText = this.responseText;
+                                stackOfXhr[path].forEach((resolved) => {
+                                    resolved(responseText);
+                                });
+                                delete (stackOfXhr[path]);
+                            } else {
+                                reject('No Response');
+                            }
+                        }
+                    });
+                    xhr.open('GET', settings.worldUrl + path);
+                    xhr.setRequestHeader('content-type', 'application/json');
+                    xhr.setRequestHeader('accept', 'application/json');
+                    if (accessToken) {
+                        xhr.setRequestHeader('authorization', `Bearer ${accessToken}`);
+                    }
+                    if (settings.log) { console.log('get', path); }
+                    xhr.send({});
+                });
+            }
+        });
     }
     function getter(query, params, sync) {
         return new Promise((resolve, reject) => {
@@ -54,9 +92,9 @@ const client = (settings) => {
                         const user = gun.get('users').get(query.split('.')[1]);
                         if (params === 'check' && query.split('.').length === 2) {
                             getDataFromServer(`/accounts/checkUsernameExists/${username}`).then((serverRes) => {
-                                const data = JSON.parse(serverRes).data;
-                                resolve(data);
-                                if (data) {
+                                const theData = JSON.parse(serverRes).data;
+                                resolve(theData);
+                                if (theData) {
                                     user.set({});
                                 }
                             });
@@ -128,9 +166,8 @@ const client = (settings) => {
             });
         })
             .then(() => {
-                if (oldValue != undefined ||
-                JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
-                    // add to postList
+                if (oldValue !== undefined || JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+                // add to postList
                     if (settings.log) { console.log('needs sync', newValue); }
                 } else if (settings.log) { console.log('In sync', newValue); }
             })
@@ -158,45 +195,6 @@ const client = (settings) => {
         });
     }
 
-    function getDataFromServer(path) {
-        return new Promise((resolve, reject) => {
-            if (stackOfXhr[path]) {
-                stackOfXhr[path].push(resolve);
-            } else {
-                stackOfXhr[path] = [resolve];
-                if (!navigator.onLine) {
-                    reject('offline');
-                }
-                getter('user._accessToken').then((accessToken) => {
-                    const xhr = new XMLHttpRequest();
-                    if (accessToken) {
-                        xhr.withCredentials = true;
-                    }
-                    xhr.addEventListener('readystatechange', function () {
-                        if (this.readyState === 4 && this.status < 300) {
-                            if (this.responseText) {
-                                const responseText = this.responseText;
-                                stackOfXhr[path].forEach((resolved) => {
-                                    resolved(responseText);
-                                });
-                                delete (stackOfXhr[path]);
-                            } else {
-                                reject('No Response');
-                            }
-                        }
-                    });
-                    xhr.open('GET', settings.worldUrl + path);
-                    xhr.setRequestHeader('content-type', 'application/json');
-                    xhr.setRequestHeader('accept', 'application/json');
-                    if (accessToken) {
-                        xhr.setRequestHeader('authorization', `Bearer ${accessToken}`);
-                    }
-                    if (settings.log) { console.log('get', path); }
-                    xhr.send({});
-                });
-            }
-        });
-    }
     function renewToken() {
         const user = JSON.parse(localStorage.getItem('user'));
         if (user && user.renew < Date.now() && user._accessToken) {
@@ -223,7 +221,7 @@ const client = (settings) => {
     }
     function poster(data, path, accessToken) {
         if (!navigator.onLine) {
-          throw new Error('offline');
+            throw new Error('offline');
         }
         const url = settings.worldUrl + path;
         const theFetch = {
@@ -241,9 +239,9 @@ const client = (settings) => {
             theFetch.headers.authorization = `Bearer ${accessToken}`;
         }
         return fetch(url, theFetch).then((response) => {
-            return response.json().then((data) => {
+            return response.json().then((theData) => {
                 if (response.status < 300) {
-                    return data;
+                    return theData;
                 }
                 throw new Error('no post');
             });
@@ -456,7 +454,14 @@ const client = (settings) => {
                 args.params.username = args.params.username.toLowerCase();
 
                 // are you login already?
-                return API.read({ populate: { username: 'user.username', _localToken: 'user._localToken', _accessToken: 'user._accessToken' }, sync: false }).then(async (user) => {
+                return API.read({
+                    populate: {
+                        username: 'user.username',
+                        _localToken: 'user._localToken',
+                        _accessToken: 'user._accessToken'
+                    },
+                    sync: false
+                }).then(async (user) => {
                     if (!user) {
                         if (settings.log) { console.error('error got user'); }
                     }
@@ -464,10 +469,7 @@ const client = (settings) => {
                         if (!args.params.password) {
                             throw new Error("need a password e.g. username: 'marcus7777', password: 'monkey123'");
                         }
-                        return makeLocalToken(
-                            await user.username,
-                            await user.password
-                        ).then((localToken) => {
+                        return makeLocalToken(args.params.username, args.params.password).then((localToken) => {
                             return poster(args.params, '/accounts/auth').then((res) => {
                                 const token = res.data.token;
                                 const duration = res.data.duration;
@@ -488,13 +490,25 @@ const client = (settings) => {
                                 }).then(() => {
                                     return API.read({ populate: args.populate });
                                 });
+                            }).catch((err) => {
+                                if (err === 'offline') {
+                                    return sha256(args.params.username).then((userHashAb) => {
+                                        const userHash = arrayToBase64(userHashAb);
+                                        localStorage.setItem('user', JSON.stringify({
+                                            mapTo: `users.${args.params.username}`,
+                                            username: args.params.username,
+                                            _localToken: localToken, // to encrypt with when logged out
+                                            _accessToken: token // to access server
+                                        }));
+                                    }).then(() => {
+                                        return API.read({ populate: args.populate });
+                                    });
+                                }
+                                throw err;
                             });
                         }).catch((err) => {
-                            if (err === 'offline') {
-                                return API.read(args);
-                            }
                             console.error(err);
-                            throw err;
+                            return API.read(args);
                         });
                         // TODO  if logged in as something else
                     } else if (await user.username === args.params.username) {
