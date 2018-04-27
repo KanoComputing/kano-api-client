@@ -1,6 +1,6 @@
 import '../gun/gun.js';
 
-const client = (settings) => {
+function client(settings) {
     const initialStateLoggedInUser = localStorage.getItem('user');
     let initialStateUser = false;
     if (initialStateLoggedInUser) {
@@ -30,14 +30,14 @@ const client = (settings) => {
             } else {
                 stackOfXhr[path] = [resolve];
                 if (!navigator.onLine) {
-                    reject('offline');
+                    reject(new Error('offline'));
                 }
                 getter('user._accessToken').then((accessToken) => {
                     const xhr = new XMLHttpRequest();
                     if (accessToken) {
                         xhr.withCredentials = true;
                     }
-                    xhr.addEventListener('readystatechange', function () {
+                    xhr.addEventListener('readystatechange', () => {
                         if (this.readyState === 4 && this.status < 300) {
                             if (this.responseText) {
                                 const responseText = this.responseText;
@@ -46,7 +46,7 @@ const client = (settings) => {
                                 });
                                 delete (stackOfXhr[path]);
                             } else {
-                                reject('No Response');
+                                reject(new Error('No Response'));
                             }
                         }
                     });
@@ -86,8 +86,9 @@ const client = (settings) => {
             queryRun.split('.*')[0].split('.').reduce((db, val) => { // TODO use "gun load"  if ".*"
                 return db.get(val);
             }, gun).once((data) => {
-                if (sync && data === undefined) { //
-                    if (query.startsWith('users.')) { //
+                if (sync && data === undefined) {
+                    let gunData = data;
+                    if (query.startsWith('users.')) {
                         const username = query.split('.')[1];
                         const user = gun.get('users').get(query.split('.')[1]);
                         if (params === 'check' && query.split('.').length === 2) {
@@ -101,25 +102,26 @@ const client = (settings) => {
                         } else {
                             getDataFromServer(`/users/?username=${query.split('.')[1]}`).then((serverRes) => {
                                 const serverData = JSON.parse(serverRes, (key, value) => {
+                                    let theValue = value;
                                     if (Array.isArray(value)) {
-                                        value = value.reduce((acc, curValue, curIndex) => {
+                                        theValue = value.reduce((acc, curValue, curIndex) => {
                                             acc[curIndex] = curValue;
                                             return acc;
                                         }, {});
                                     }
-                                    return value;
+                                    return theValue;
                                 });
-                                Object.keys(serverData.data).map((key) => {
+                                Object.keys(serverData.data).forEach((key) => {
                                     user.get(key.replace('_', '')).put(serverData.data[key]);
                                 });
                             }).then(() => {
                                 query.split('.').reduce((db, val) => {
                                     return db.get(val);
                                 }, gun).once((retry) => {
-                                    data = retry;
+                                    gunData = retry;
                                 });
                             }).then(() => {
-                                resolve(ifArray(data));
+                                resolve(ifArray(gunData));
                             })
                                 .catch((e) => {
                                     reject(e);
@@ -136,52 +138,55 @@ const client = (settings) => {
         return JSON.parse(JSON.stringify(valueToSet, (_, value) => {
             if (Array.isArray(value)) {
                 return value.reduce((accumulator, currentValue, currentIndex) => {
-                    return accumulator[currentIndex] = currentValue;
+                    const theAccumulator = accumulator;
+                    theAccumulator[currentIndex] = currentValue;
+                    return theAccumulator;
                 }, {});
             }
             return value;
         }));
     }
-    function setter(query, valueToSet, params) {
+    function setter(query, valueToSet) {
         const loggedInUser = JSON.parse(localStorage.getItem('user'));
+        let theQuery = query;
         if (loggedInUser) {
             if (query.startsWith('user.') || query === 'user') {
-                query = query.replace('user', loggedInUser.mapTo);
+                theQuery = query.replace('user', loggedInUser.mapTo);
             }
         }
 
-        valueToSet = arraysToObject(valueToSet);
-
         let oldValue;
         let newValue;
-        return getter(query).then((data) => {
+        return getter(theQuery).then((data) => {
             oldValue = data;
         }).then(() => {
-            return query.split('.').reduce((db, val) => {
+            theQuery.split('.').reduce((db, val) => {
                 return db.get(val);
-            }, gun).put(valueToSet);
+            }, gun).put(arraysToObject(valueToSet));
         }).then(() => {
-            return getter(query).then((data) => {
-                newValue = data;
-            });
+            return getter(theQuery);
         })
+            .then((data) => {
+                newValue = data;
+            })
             .then(() => {
                 if (oldValue !== undefined || JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
-                // add to postList
                     if (settings.log) { console.log('needs sync', newValue); }
-                } else if (settings.log) { console.log('In sync', newValue); }
+                // TODO add to postList
+                }
             })
             .then(() => {
                 return newValue;
             });
     }
     function onIdle(itime, doAfter) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             let trys = 0;
             const onIdleTest = () => {
                 const t = performance.now();
                 setTimeout(() => {
-                    if (doAfter && trys++ > doAfter) {
+                    trys += 1;
+                    if (doAfter && trys > doAfter) {
                         resolve();
                     }
                     if (Math.round(performance.now() - t) === Math.round(itime)) {
@@ -198,24 +203,25 @@ const client = (settings) => {
     function renewToken() {
         const user = JSON.parse(localStorage.getItem('user'));
         if (user && user.renew < Date.now() && user._accessToken) {
-            getDataFromServer('/accounts/auth/refresh').then((res) => {
-                if (settings.log) { console.log(res); }
-                // duration
-                // user
-                if (JSON.parse(res).data && JSON.parse(res).data.token) {
-                    const token = JSON.parse(res).data.token;
-                    const duration = JSON.parse(res).data.duration;
-                    const renew = Date.now() + ((duration / 2) * 1000);
-
-                    localStorage.setItem('user', JSON.stringify({
-                        mapTo: `users.${user.username}`,
-                        username: user.username,
-                        _localToken: user.localToken, // to encrypt with when logged out
-                        _accessToken: token, // to access server
-                        userHash,
-                        renew
-                    }));
-                }
+            onIdle(1000, 10).then(() => {
+                return getDataFromServer('/accounts/auth/refresh').then((res) => {
+                    if (settings.log) { console.log(res); }
+                    // duration
+                    // user
+                    if (JSON.parse(res).data && JSON.parse(res).data.token) {
+                        const token = JSON.parse(res).data.token;
+                        const duration = JSON.parse(res).data.duration;
+                        const renew = Date.now() + ((duration / 2) * 1000);
+                        const lUser = localStorage.user;
+                        localStorage.setItem(
+                            'user',
+                            JSON.stringify(Object.assign(lUser, {
+                                _accessToken: token,
+                                renew
+                            }))
+                        );
+                    }
+                });
             });
         }
     }
@@ -241,6 +247,7 @@ const client = (settings) => {
         return fetch(url, theFetch).then((response) => {
             return response.json().then((theData) => {
                 if (response.status < 300) {
+                    renewToken();
                     return theData;
                 }
                 throw new Error('no post');
@@ -260,7 +267,7 @@ const client = (settings) => {
     function str2ab(str) {
         const buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
         const bufView = new Uint16Array(buf);
-        for (let i = 0, strLen = str.length; i < strLen; i++) {
+        for (let i = 0, strLen = str.length; i < strLen; i += 1) {
             bufView[i] = str.charCodeAt(i);
         }
         return buf;
@@ -331,9 +338,9 @@ const client = (settings) => {
                     });
                 }
                 return key;
-            }).then((key) => {
+            }).then((theKey) => {
                 // if encrypted data decrypt it
-                return crypto.subtle.exportKey('jwk', key);
+                return crypto.subtle.exportKey('jwk', theKey);
             }).then((keydata) => {
                 // returns the exported key data
                 return keydata.k; // save the hard bit
@@ -361,7 +368,10 @@ const client = (settings) => {
                                 const token = res.data.token;
                                 const duration = res.data.duration;
                                 const renew = Date.now() + ((duration / 2) * 1000);
-                                const user = Object.assign(args.params.user, res.data.user);
+                                const user = Object.assign(
+                                    { username: args.params.user.username },
+                                    res.data.user
+                                );
 
                                 if (user.username) {
                                     API.isLoggedIn = args.params.user.username;
@@ -372,20 +382,21 @@ const client = (settings) => {
                                     ).then((localToken) => {
                                         return sha256(user.username).then((hash) => {
                                             const userHash = arrayToBase64(hash);
-                                            return localStorage.setItem('user', JSON.stringify({
-                                                mapTo: `users.${user.username}`,
-                                                username: user.username,
-                                                _localToken: localToken,
-                                                _accessToken: token, // to access server
-                                                userHash,
-                                                renew
-                                            }));
+                                            return localStorage.setItem(
+                                                'user',
+                                                JSON.stringify(Object.assign(localStorage.user, {
+                                                    renew,
+                                                    userHash,
+                                                    _accessToken: token,
+                                                    _localToken: localToken,
+                                                    username: user.username
+                                                }))
+                                            );
                                         });
                                     }).then(() => {
-                                        args.params = {
-                                            user
-                                        };
-                                        return API.update(args);
+                                        return API.update(Object.assign(args, {
+                                            params: user
+                                        }));
                                     });
                                 }
                             }
@@ -404,7 +415,7 @@ const client = (settings) => {
                     const allThePromises = [];
                     const allThePromisesKeys = [];
                     const bulid = JSON.parse(JSON.stringify(args.populate), (_, value) => {
-                        if (typeof value === 'string' && /^[_a-z0-9\-\.]*$/i.test(value)) {
+                        if (typeof value === 'string' && /^[_a-z0-9\-.]*$/i.test(value)) {
                             if (settings.resolve) {
                                 allThePromisesKeys.push(value);
                                 allThePromises.push(getter(value, args.params, args.sync));
@@ -417,7 +428,7 @@ const client = (settings) => {
                     if (settings.resolve) {
                         return Promise.all(allThePromises).then((values) => {
                             return JSON.parse(JSON.stringify(args.populate), (_, value) => {
-                                if (typeof value === 'string' && /^[_a-z0-9\-\.]*$/i.test(value)) {
+                                if (typeof value === 'string' && /^[_a-z0-9\-.]*$/i.test(value)) {
                                     return values[allThePromisesKeys.indexOf(value)];
                                 }
                                 return value;
@@ -451,8 +462,6 @@ const client = (settings) => {
                 if (!args.params.username) {
                     throw new Error("need a username e.g. {username: 'marcus7777', password: 'monkey123'}");
                 }
-                args.params.username = args.params.username.toLowerCase();
-
                 // are you login already?
                 return API.read({
                     populate: {
@@ -465,11 +474,11 @@ const client = (settings) => {
                     if (!user) {
                         if (settings.log) { console.error('error got user'); }
                     }
-                    if (await user.username === undefined) {
+                    if (await user.username === undefined) { // so you are not logged in
                         if (!args.params.password) {
                             throw new Error("need a password e.g. username: 'marcus7777', password: 'monkey123'");
                         }
-                        return makeLocalToken(args.params.username, args.params.password).then((localToken) => {
+                        return makeLocalToken(args.params.username.toLowerCase(), args.params.password).then((localToken) => {
                             return poster(args.params, '/accounts/auth').then((res) => {
                                 const token = res.data.token;
                                 const duration = res.data.duration;
@@ -479,6 +488,7 @@ const client = (settings) => {
 
                                 return sha256(args.params.username).then((userHashAb) => {
                                     const userHash = arrayToBase64(userHashAb);
+
                                     localStorage.setItem('user', JSON.stringify({
                                         mapTo: `users.${args.params.username}`,
                                         username: args.params.username,
@@ -494,12 +504,11 @@ const client = (settings) => {
                                 if (err === 'offline') {
                                     return sha256(args.params.username).then((userHashAb) => {
                                         const userHash = arrayToBase64(userHashAb);
-                                        localStorage.setItem('user', JSON.stringify({
-                                            mapTo: `users.${args.params.username}`,
-                                            username: args.params.username,
-                                            _localToken: localToken, // to encrypt with when logged out
-                                            _accessToken: token // to access server
-                                        }));
+                                        const savedData = decryptString(
+                                            localToken,
+                                            localStorage.getItem(userHash)
+                                        );
+                                        localStorage.setItem('user', savedData);
                                     }).then(() => {
                                         return API.read({ populate: args.populate });
                                     });
@@ -542,6 +551,6 @@ const client = (settings) => {
         };
         return API;
     }
-    console.error('Need a worldUrl');
-};
+    throw new Error('Need a worldUrl');
+}
 export default client;
