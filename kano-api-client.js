@@ -1,7 +1,13 @@
 import '../gun/gun.js';
 
-function client(settings) {
-    const initialStateLoggedInUser = localStorage.getItem('user');
+export default function (settings) {
+    if (!settings) throw new Error('settings are needed eg. client({defaultUrl:\'./fakeApi\'})');
+    let ls = localStorage;
+    if (settings.localStorage) {
+        ls = settings.localStorage;
+    }
+    if (!settings.defaultUrl) throw new Error('defaultUrl is needed eg. client({defaultUrl:\'./fakeApi\'})');
+    const initialStateLoggedInUser = ls.getItem('user');
     let initialStateUser = false;
     if (initialStateLoggedInUser) {
         initialStateUser = initialStateLoggedInUser.username;
@@ -11,7 +17,7 @@ function client(settings) {
     const gun = Gun();
     // functions
     function ifArray(data) {
-        if (typeof data === 'object' && Object.keys(data).length && '012345678910'.startsWith(Object.keys(data).join('').slice(0, -1))) {
+        if (typeof data === 'object' && Object.keys(data).length && '0123456789'.startsWith(Object.keys(data).join('').slice(0, -1))) {
             return Object.keys(data).reduce((a, v) => {
                 if (v !== '_' && v === +v) {
                     a.push(v);
@@ -33,38 +39,45 @@ function client(settings) {
                     reject(new Error('offline'));
                 }
                 getter('user._accessToken').then((accessToken) => {
-                    const xhr = new XMLHttpRequest();
+                    const theFetch = {
+                        headers: {
+                            'content-type': 'application/json',
+                            Accept: 'application/json'
+                        },
+                        method: 'GET',
+                        mode: 'cors',
+                        redirect: 'follow',
+                        referrer: 'Api-client'
+                    };
                     if (accessToken) {
-                        xhr.withCredentials = true;
+                        theFetch.headers.authorization = `Bearer ${accessToken}`;
                     }
-                    xhr.addEventListener('readystatechange', () => {
-                        if (this.readyState === 4 && this.status < 300) {
-                            if (this.responseText) {
-                                const responseText = this.responseText;
-                                stackOfXhr[path].forEach((resolved) => {
-                                    resolved(responseText);
-                                });
-                                delete (stackOfXhr[path]);
-                            } else {
-                                reject(new Error('No Response'));
-                            }
+                    fetch(`${settings.defaultUrl}/${path}`, theFetch).then((response) => {
+                        return response.json();
+                    }).then((dataFromServer) => {
+                        if (dataFromServer !== undefined && dataFromServer !== null) {
+                            stackOfXhr[path].forEach((resolved) => {
+                                resolved(dataFromServer);
+                            });
+                            delete (stackOfXhr[path]);
+                        } else {
+                            reject(new Error('No Response'));
                         }
                     });
-                    xhr.open('GET', settings.worldUrl + path);
-                    xhr.setRequestHeader('content-type', 'application/json');
-                    xhr.setRequestHeader('accept', 'application/json');
-                    if (accessToken) {
-                        xhr.setRequestHeader('authorization', `Bearer ${accessToken}`);
-                    }
                     if (settings.log) { console.log('get', path); }
-                    xhr.send({});
                 });
             }
         });
     }
+    if (settings.getDataFromServer) {
+        getDataFromServer = settings.getDataFromServer;
+    }
     function getter(query, params, sync) {
+        if (!query || query === 'undefined') {
+            throw new Error('no query');
+        }
         return new Promise((resolve, reject) => {
-            const loggedInUser = JSON.parse(localStorage.getItem('user'));
+            const loggedInUser = JSON.parse(ls.getItem('user') || 'null');
             let queryRun = query;
             if (loggedInUser) {
                 if (query === 'user._accessToken') {
@@ -92,8 +105,8 @@ function client(settings) {
                         const username = query.split('.')[1];
                         const user = gun.get('users').get(query.split('.')[1]);
                         if (params === 'check' && query.split('.').length === 2) {
-                            getDataFromServer(`/accounts/checkUsernameExists/${username}`).then((serverRes) => {
-                                const theData = JSON.parse(serverRes).data;
+                            getDataFromServer(`accounts/checkUsernameExists/${username}`).then((serverRes) => {
+                                const theData = JSON.parse(serverRes.data);
                                 resolve(theData);
                                 if (theData) {
                                     user.set({});
@@ -115,7 +128,7 @@ function client(settings) {
                                     user.get(key.replace('_', '')).put(serverData.data[key]);
                                 });
                             }).then(() => {
-                                query.split('.').reduce((db, val) => {
+                                return query.split('.').reduce((db, val) => {
                                     return db.get(val);
                                 }, gun).once((retry) => {
                                     gunData = retry;
@@ -147,7 +160,7 @@ function client(settings) {
         }));
     }
     function setter(query, valueToSet) {
-        const loggedInUser = JSON.parse(localStorage.getItem('user'));
+        const loggedInUser = JSON.parse(ls.getItem('user') || 'null');
         let theQuery = query;
         if (loggedInUser) {
             if (query.startsWith('user.') || query === 'user') {
@@ -199,27 +212,28 @@ function client(settings) {
             onIdleTest();
         });
     }
-
     function renewToken() {
-        const user = JSON.parse(localStorage.getItem('user'));
+        const user = JSON.parse(ls.getItem('user'));
         if (user && user.renew < Date.now() && user._accessToken) {
             onIdle(1000, 10).then(() => {
-                return getDataFromServer('/accounts/auth/refresh').then((res) => {
+                return getDataFromServer('accounts/auth/refresh').then((res) => {
                     if (settings.log) { console.log(res); }
                     // duration
                     // user
-                    if (JSON.parse(res).data && JSON.parse(res).data.token) {
-                        const token = JSON.parse(res).data.token;
-                        const duration = JSON.parse(res).data.duration;
+                    if (res.data && res.data.token) {
+                        const token = res.data.token;
+                        const duration = res.data.duration;
                         const renew = Date.now() + ((duration / 2) * 1000);
-                        const lUser = localStorage.user;
-                        localStorage.setItem(
+                        const lUser = ls.getItem('user') || {};
+                        ls.setItem(
                             'user',
                             JSON.stringify(Object.assign(lUser, {
                                 _accessToken: token,
                                 renew
                             }))
                         );
+                    } else {
+                        throw new Error('no new token');
                     }
                 });
             });
@@ -229,7 +243,7 @@ function client(settings) {
         if (!navigator.onLine) {
             throw new Error('offline');
         }
-        const url = settings.worldUrl + path;
+        const url = settings.defaultUrl + path;
         const theFetch = {
             body: JSON.stringify(data), // must match 'Content-Type' header
             headers: {
@@ -250,12 +264,15 @@ function client(settings) {
                     renewToken();
                     return theData;
                 }
-                throw new Error('no post');
+                throw new Error(`${response.message} ${response.status}`);
             });
         });
     }
+    if (settings.poster) {
+        poster = settings.poster;
+    }
     function sha256(str) {
-        // We transform the string into an arraybuffer.
+    // We transform the string into an arraybuffer.
         const buffer = new TextEncoder('utf-8').encode(str);
         return crypto.subtle.digest('SHA-256', buffer).then((hash) => {
             return hash;
@@ -289,50 +306,60 @@ function client(settings) {
             kty: 'oct', k: localToken, alg: 'A256CBC', ext: true
         }, { name: 'AES-CBC' }, false, ['encrypt', 'decrypt']);
     }
-    function encryptString(localToken, data) {
+    function encryptString(localToken, data, ivAsString) {
         return keyFromLocalToken(localToken).then((key) => {
-            const iv = window.crypto.getRandomValues(new Uint8Array(16));
+            const iv = new Uint8Array(ivAsString.split(','));
             return window.crypto.subtle.encrypt({
                 name: 'AES-CBC',
                 iv
             }, key, str2ab(`12345678${data}`)); // add 8 chr due to droppinginitial vector
         }).then((encrypted) => {
-            return ab2str(encrypted);
+            return arrayToBase64(encrypted);
         });
     }
-    function decryptString(localToken, data) {
-        return keyFromLocalToken(localToken).then((key) => {
-            return window.crypto.subtle.decrypt(
-                {
-                    name: 'AES-CBC',
-                    iv: window.crypto.getRandomValues(new Uint8Array(16))
-                },
-                key, // from generateKey or importKey above
-                str2ab(data),
-            );
-        }).then((decrypted) => {
-            return ab2str(decrypted).slice(8);
-        });
-    }
+    // function decryptString(localToken, data, ivAsString) {
+    // return keyFromLocalToken(localToken).then((key) => {
+    // const iv = new Uint8Array(ivAsString.split(','));
+    //
+    // return window.crypto.subtle.decrypt(
+    // {
+    // name: 'AES-CBC',
+    // iv
+    // },
+    // key, // from generateKey or importKey above
+    // base64ToArrayBuffer(data)
+    // );
+    // }).then((decrypted) => {
+    // return ab2str(decrypted).slice(8);
+    // });
+    // }
     function makeLocalToken(username, password) {
+        if (!username || !password) {
+            throw new Error('need Both username & password');
+        }
         return sha256(username + password).then((localhash) => {
             return crypto.subtle.importKey('raw', localhash, { name: 'AES-CBC' }, true, ['encrypt', 'decrypt']);
         }).then((key) => {
             return sha256(username).then((userSHA) => {
-                const data = localStorage.getItem(arrayToBase64(userSHA));
+                const userHash = arrayToBase64(userSHA);
+                const data = ls.getItem(userHash);
+                const iv = ls.getItem(`${userHash}iv`);
                 if (data) {
-                    localStorage.removeItem(arrayToBase64(userSHA));
+                    ls.removeItem(userHash);
+                    ls.removeItem(`${userHash}iv`);
                     window.crypto.subtle.decrypt(
                         {
                             name: 'AES-CBC',
-                            iv: window.crypto.getRandomValues(new Uint8Array(16))
+                            iv: new Uint8Array(iv.split(','))
                         },
                         key, // from generateKey or importKey above
-                        str2ab(data) // ArrayBuffer of the data
+                        base64ToArrayBuffer(data) // ArrayBuffer of the data
                     ).then((decrypted) => {
                         // TODO put ES-CBC
                         // as no initial Factor I need to chop off the first 8 characters
-                        localStorage.setItem('user', ab2str(decrypted).slice(8));
+                        return ls.setItem('user', ab2str(decrypted).slice(8));
+                    }).then(() => {
+                        API.isLoggedIn = JSON.parse(ls.getItem('user')).username;
                     }).catch((err) => {
                         console.error(err);
                     });
@@ -347,20 +374,55 @@ function client(settings) {
             });
         });
     }
-    if (settings && settings.worldUrl) {
-        const API = {
-            isLoggedIn: initialStateUser,
-            check: (query) => {
-                return getter(query, 'check', true).then((data) => { return !!data; });
-            },
-            create: (args) => {
-                const loggedInUser = localStorage.getItem('user');
-                if (args.params.user && !loggedInUser) {
-                    const argUser = args.params.user;
-                    if (argUser.username && argUser.password && argUser.email) {
+    let API = {
+        isLoggedIn: initialStateUser.username || false,
+        check: (query) => {
+            return getter(query, 'check', true).then((data) => { return !!data; });
+        },
+        forgotUsername: (args) => {
+            if (args && args.params && args.params.user && args.params.user.email) {
+                const email = args.params.user.email;
+                if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}/gi.test(email)) {
+                    return poster(email, 'accounts/forgotUsername').then((response) => {
+                        if (response.data === 'true') {
+                            return API.read(args);
+                        }
+                        throw new Error('invalid email');
+                    });
+                }
+                throw new Error('invalid email');
+            } else {
+                throw new Error('need a params.user.email in the Object');
+            }
+        },
+        forgotPassword: (args) => {
+            if (args && args.params && args.params.user && args.params.user.username) {
+                const username = args.params.user.username;
+                if (/^[0-9a-z]*$/gi.test(username)) {
+                    return poster(username, 'accounts/forgotPassword').then((response) => {
+                        if (response.data === 'true') {
+                            return API.read(args);
+                        }
+                        throw new Error('invalid username');
+                    });
+                }
+                throw new Error('invalid username');
+            } else {
+                throw new Error('need a params.user.username in the Object');
+            }
+        },
+        create: (args) => {
+            const loggedInUser = ls.getItem('user');
+            if (args.params.user && !loggedInUser) {
+                const argUser = args.params.user;
+                return sha256(argUser.username).then((hash) => {
+                    const userHash = arrayToBase64(hash);
+                    if (ls.getItem(userHash)) {
+                        throw new Error('User already exists');
+                    } else if (argUser.username && argUser.password && argUser.email) {
                         if (!argUser.erole) { argUser.erole = 'notset'; }
                         //  if (!args.params.user.epurpose) {args.params.user.epurpose = "notset"}
-                        return poster(argUser, '/accounts').then((res) => {
+                        return poster(argUser, 'accounts').then((res) => {
                             if (settings.log) { console.log(res); }
                             // duration
                             // user
@@ -368,189 +430,171 @@ function client(settings) {
                                 const token = res.data.token;
                                 const duration = res.data.duration;
                                 const renew = Date.now() + ((duration / 2) * 1000);
-                                const user = Object.assign(
-                                    { username: args.params.user.username },
-                                    res.data.user
-                                );
+                                const user = Object.assign({
+                                    username: args.params.user.username
+                                }, res.data.user);
 
                                 if (user.username) {
                                     API.isLoggedIn = args.params.user.username;
 
                                     return makeLocalToken(
                                         user.username,
-                                        user.password,
+                                        args.params.user.password
                                     ).then((localToken) => {
-                                        return sha256(user.username).then((hash) => {
-                                            const userHash = arrayToBase64(hash);
-                                            return localStorage.setItem(
-                                                'user',
-                                                JSON.stringify(Object.assign(localStorage.user, {
-                                                    renew,
-                                                    userHash,
-                                                    _accessToken: token,
-                                                    _localToken: localToken,
-                                                    username: user.username
-                                                }))
-                                            );
-                                        });
-                                    }).then(() => {
-                                        return API.update(Object.assign(args, {
-                                            params: user
-                                        }));
+                                        ls.setItem(
+                                            'user',
+                                            JSON.stringify(Object.assign(ls.user || {}, {
+                                                renew,
+                                                userHash,
+                                                _accessToken: token,
+                                                _localToken: localToken,
+                                                mapTo: `users.${user.username}`,
+                                                username: user.username
+                                            }))
+                                        );
+                                        return user;
                                     });
                                 }
                             }
-                            throw res;
-                        }).catch((err) => {
-                            console.error('error create user', err);
-                        });
-                    }
-                }
-            },
-            read: (args) => {
-                return API._read(Object.assign({ sync: true }, args));
-            },
-            _read: (args) => {
-                if (args.populate) {
-                    const allThePromises = [];
-                    const allThePromisesKeys = [];
-                    const bulid = JSON.parse(JSON.stringify(args.populate), (_, value) => {
-                        if (typeof value === 'string' && /^[_a-z0-9\-.]*$/i.test(value)) {
-                            if (settings.resolve) {
-                                allThePromisesKeys.push(value);
-                                allThePromises.push(getter(value, args.params, args.sync));
-                                return value;
-                            }
-                            return getter(value, args.params, args.sync);
-                        }
-                        return value;
-                    });
-                    if (settings.resolve) {
-                        return Promise.all(allThePromises).then((values) => {
-                            return JSON.parse(JSON.stringify(args.populate), (_, value) => {
-                                if (typeof value === 'string' && /^[_a-z0-9\-.]*$/i.test(value)) {
-                                    return values[allThePromisesKeys.indexOf(value)];
+                            throw new Error('No token from serve');
+                        }).then((user) => {
+                            return API.update(Object.assign(args, {
+                                params: {
+                                    user
                                 }
-                                return value;
-                            });
+                            }));
                         });
                     }
-                    return bulid;
-                }
-                return {};
-            },
-            update: (args) => {
-                Object.keys(args.params).forEach((key) => {
-                    setter(key, args.params[key]);
+                    throw new Error('Need an user.username && user.password & user.email');
+                }).catch((err) => {
+                    console.error('error create user', err);
                 });
-                return API.read(Object.assign({ sync: true }, args));
-            },
-            delete: (args) => {
-                // TODO map value to Null
-                return API.update(JSON.parse(JSON.stringify(args.params), () => {
-                    return null;
-                }));
-            },
-            getUser: (args) => {
-                // TODO test if update okay
-                return API.read({ params: { user: args.params }, populate: args.populate });
-            },
-            login: (args) => {
-                if (!args.params) {
-                    throw new Error("need params e.g. API.login({params: {username: 'marcus7777', password: 'monkey123'}})");
-                }
-                if (!args.params.username) {
-                    throw new Error("need a username e.g. {username: 'marcus7777', password: 'monkey123'}");
-                }
-                // are you login already?
-                return API.read({
-                    populate: {
-                        username: 'user.username',
-                        _localToken: 'user._localToken',
-                        _accessToken: 'user._accessToken'
-                    },
-                    sync: false
-                }).then(async (user) => {
-                    if (!user) {
-                        if (settings.log) { console.error('error got user'); }
-                    }
-                    if (await user.username === undefined) { // so you are not logged in
-                        if (!args.params.password) {
-                            throw new Error("need a password e.g. username: 'marcus7777', password: 'monkey123'");
+            }
+            throw new Error('Need a user and to be logged out.');
+        },
+        read: (args) => {
+            return new Promise((resolve) => {
+                resolve(API._read(Object.assign({ sync: true }, args)));
+            });
+        },
+        _read: (args) => {
+            if (args.populate) {
+                const allThePromises = [];
+                const allThePromisesKeys = [];
+                const bulid = JSON.parse(JSON.stringify(args.populate), (_, value) => {
+                    if (typeof value === 'string' && /^[_a-z0-9\-.]*$/i.test(value)) {
+                        if (settings.resolve) {
+                            allThePromisesKeys.push(value);
+                            allThePromises.push(getter(value, args.params, args.sync));
+                            return value;
                         }
-                        return makeLocalToken(args.params.username.toLowerCase(), args.params.password).then((localToken) => {
-                            return poster(args.params, '/accounts/auth').then((res) => {
+                        return getter(value, args.params, args.sync);
+                    }
+                    return value;
+                });
+                if (settings.resolve) {
+                    return Promise.all(allThePromises).then((values) => {
+                        return JSON.parse(JSON.stringify(args.populate), (_, value) => {
+                            if (typeof value === 'string' && /^[_a-z0-9\-.]*$/i.test(value)) {
+                                return values[allThePromisesKeys.indexOf(value)];
+                            }
+                            return value;
+                        });
+                    });
+                }
+                return bulid;
+            }
+            return {};
+        },
+        login: (args) => {
+            if (!args.params) {
+                throw new Error("need params e.g. API.login({params: {user: {username: 'marcus7777', password: 'monkey123'}}})");
+            }
+            if (!args.params.user) {
+                throw new Error("need a username e.g. {username: 'marcus7777', password: 'monkey123'}");
+            }
+            // are you login already?
+            return API.read({
+                populate: {
+                    username: 'user.username',
+                    _localToken: 'user._localToken',
+                    _accessToken: 'user._accessToken'
+                },
+                sync: false
+            }).then(async (user) => {
+                if (!user) {
+                    if (settings.log) { console.error('error got user'); }
+                } else if (settings.log) { console.log('user', user); }
+                if (await user.username === undefined) { // so you are not logged in
+                    if (!args.params.user.password) {
+                        throw new Error("need a password e.g. username: 'marcus7777', password: 'monkey123'");
+                    }
+                    return makeLocalToken(args.params.user.username.toLowerCase(), args.params.user.password).then((localToken) => {
+                        if (!ls.getItem('user')) {
+                            return poster(args.params.user, 'accounts/auth').then((res) => {
                                 const token = res.data.token;
                                 const duration = res.data.duration;
                                 const renew = Date.now() + ((duration / 2) * 1000);
 
-                                API.isLoggedIn = args.params.username;
+                                API.isLoggedIn = args.params.user.username;
 
-                                return sha256(args.params.username).then((userHashAb) => {
-                                    const userHash = arrayToBase64(userHashAb);
-
-                                    localStorage.setItem('user', JSON.stringify({
-                                        mapTo: `users.${args.params.username}`,
-                                        username: args.params.username,
-                                        _localToken: localToken, // to encrypt with when logged out
-                                        _accessToken: token, // to access server
-                                        userHash,
-                                        renew
-                                    }));
-                                }).then(() => {
-                                    return API.read({ populate: args.populate });
-                                });
-                            }).catch((err) => {
-                                if (err === 'offline') {
-                                    return sha256(args.params.username).then((userHashAb) => {
-                                        const userHash = arrayToBase64(userHashAb);
-                                        const savedData = decryptString(
-                                            localToken,
-                                            localStorage.getItem(userHash)
-                                        );
-                                        localStorage.setItem('user', savedData);
-                                    }).then(() => {
-                                        return API.read({ populate: args.populate });
-                                    });
-                                }
-                                throw err;
+                                ls.setItem('user', JSON.stringify({
+                                    mapTo: `users.${args.params.user.username}`,
+                                    username: args.params.user.username,
+                                    _localToken: localToken, // to encrypt with when logged out
+                                    _accessToken: token, // to access server
+                                    renew
+                                }));
+                            }).then(() => {
+                                return API.read({ populate: args.populate });
                             });
-                        }).catch((err) => {
-                            console.error(err);
-                            return API.read(args);
-                        });
-                        // TODO  if logged in as something else
-                    } else if (await user.username === args.params.username) {
-                        if (settings.log) { console.log('you are (and were) logged in :)'); }
-                    } else if (await user.username !== args.params.username) {
-                        return API.logout().then(() => {
-                            return API.login(args);
-                        });
-                    }
-                    return API.read(Object.assign({ sync: true }, args));
-                });
-            },
-            logout: () => {
+                        }
+                        return API.read({ populate: args.populate });
+                    }).catch((err) => {
+                        console.error(err);
+
+                        return API.read(args);
+                    });
+                    // TODO  if logged in as something else
+                } else if (await user.username === args.params.username) {
+                    if (settings.log) { console.log('you are (and were) logged in :)'); }
+                } else if (await user.username !== args.params.username) {
+                    return API.logout().then(() => {
+                        return API.login(args);
+                    });
+                }
+                return API.read(Object.assign({ sync: true }, args));
+            });
+        },
+        update: (args) => {
+            Object.keys(args.params).forEach((key) => {
+                setter(key, args.params[key]);
+            });
+            return API.read(Object.assign({ sync: true }, args));
+        },
+        logout: () => {
+            if (API.isLoggedIn) {
                 return getter('user._localToken').then((localToken) => {
-                    if (localToken) {
-                        const ls = localStorage;
-                        encryptString(localToken, ls.getItem('user')).then((encrypted) => {
-                            sha256(ls.user.username).then((userSHA) => {
-                                ls.setItem(arrayToBase64(userSHA), ab2str(encrypted));
-                                ls.removeItem('user');
-                            });
-                            API.isLoggedIn = false;
-                        }).catch((err) => {
-                            console.error(err);
+                    const iv = window.crypto.getRandomValues(new Uint8Array(16)).toString();
+                    return encryptString(localToken, ls.getItem('user'), iv).then((encrypted) => {
+                        return sha256(API.isLoggedIn).then((userSHA) => {
+                            ls.setItem(`${arrayToBase64(userSHA)}iv`, iv);
+                            ls.setItem(arrayToBase64(userSHA), encrypted);
+                            ls.removeItem('user');
                         });
-                    }
+                    }).then(() => {
+                        API.isLoggedIn = false;
+                    }).catch((err) => {
+                        console.error(err);
+                    });
                 }).catch((err) => {
                     console.error(err);
                 });
-            }
-        };
-        return API;
-    }
-    throw new Error('Need a worldUrl');
+            } // not logged in
+            return new Promise((resolve) => {
+                resolve(false);
+            });
+        }
+    };
+    return API;
 }
-export default client;

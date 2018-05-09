@@ -1,23 +1,16 @@
 {
   "name": "kano-api-client",
-  "homepage": "https://github.com/KanoComputing/kano-api-client",
-  "authors": [
-    "Kano Computing Ltd."
-  ],
-  "description": "api client data management",
-  "main": "kano-api-client.html",
-  "license": "MIT",
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ],
+  "main": "kano-api-client.js",
   "dependencies": {
     "gun": "#master",
-    "gun-synclist": "Stefdv/gun-synclist",
-    "webcomponentsjs": "^1.2.0",
-    "base32k": "simonratner/base32k"
+    "polymer": "Polymer/polymer#^2.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
   }
 }
