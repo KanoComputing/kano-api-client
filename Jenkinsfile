@@ -33,3 +33,8 @@ node {
     }
 
 }
+def readNodeVersion () {
+    def packageJsonString = readFile('./package.json')
+    def packageJson = new groovy.json.JsonSlurper().parseText(packageJsonString)
+    return packageJson.engines.node
+}
