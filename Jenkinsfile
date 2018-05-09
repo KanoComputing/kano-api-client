@@ -10,8 +10,7 @@ node {
           if (env.BRANCH_NAME == 'prod') {
             env = 'production'
           }
-          def nodeVersion = readNodeVersion()
-          def nodeHome = tool name: "Node ${nodeVersion}", type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
+          def nodeHome = tool name: "Node 10.0.0", type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
           env.PATH = "${nodeHome}/bin:${env.PATH}"
           sh "node -v"
           sh "npm -v"
@@ -32,9 +31,4 @@ node {
         throw err
     }
 
-}
-def readNodeVersion () {
-    def packageJsonString = readFile('./package.json')
-    def packageJson = new groovy.json.JsonSlurper().parseText(packageJsonString)
-    return packageJson.engines.node
 }
