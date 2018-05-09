@@ -2,7 +2,7 @@
 
 node {
 
-#!    currentBuild.result = "SUCCESS"
+    currentBuild.result = "SUCCESS"
 
     try {
        stage('prepare') {
@@ -28,7 +28,7 @@ node {
        }
     }
     catch (err) {
-!#        currentBuild.result = "FAILURE"
+        currentBuild.result = "FAILURE"
         throw err
     }
 
