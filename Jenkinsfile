@@ -2,8 +2,6 @@
 
 node {
 
-    currentBuild.result = "SUCCESS"
-
     try {
        stage('prepare') {
           env.NODE_ENV = 'staging'
@@ -27,7 +25,6 @@ node {
        }
     }
     catch (err) {
-        currentBuild.result = "FAILURE"
         throw err
     }
 
