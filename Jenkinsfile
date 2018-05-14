@@ -35,19 +35,7 @@ pipeline {
                 }
             }
         }
-
-        stage('documentation') {
-            steps {
-                script {
-                    if (env.BRANCH_NAME == 'master') {
-                        build job: 'Kano/components-doc/master', parameters: [
-                            text(name: 'repoUrl', value: 'https://github.com/KanoComponents/kwc-auth'),
-                            text(name: 'componentName', value: 'kwc-auth')
-                        ], wait: false
-                    }
-                }
-            }
-        }
+        
     }
 
     options {
