@@ -9,8 +9,7 @@
   "scripts": {
     "install": "bower up",
     "test": "polymer test",
-    "serve": "polymer serve",
-    "lint": "./node_modules/.bin/eslint --fix api-client.js --global localStorage --global crypto --global performance --global Gun --global fetch"
+    "serve": "polymer serve"
   },
   "author": "",
   "license": "ISC",
