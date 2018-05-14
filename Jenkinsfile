@@ -1,31 +1,56 @@
 #!groovy
 
-node {
-
-    try {
-       stage('prepare') {
-          env.NODE_ENV = 'staging'
-          if (env.BRANCH_NAME == 'prod') {
-            env = 'production'
-          }
-          def nodeHome = tool name: "Node 10.0.0", type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
-          env.PATH = "${nodeHome}/bin:${env.PATH}"
-          sh "node -v"
-          sh "npm -v"
-       }
-
-       stage('Checkout'){
-          checkout scm
-       }
-
-       stage('Test'){
-         sh 'npm install'
-         sh 'npm install'
-         sh 'npm test'
-       }
-    }
-    catch (err) {
-        throw err
+pipeline {
+    agent {
+        label 'win-test'
     }
 
+    stages {
+        // pulls down locally the sources for the component
+        stage('checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        // Install the bower dependencies of the component
+        stage('install dependencies') {
+            steps {
+                script {
+                    sh "bower --version || npm i -g bower"
+                    sh "polymer --version || npm i -g polymer-cli"
+                    sh "npm install -g https://github.com/marcelmeulemans/wct-junit-reporter.git"
+                    sh "bower i"
+                }
+            }
+        }
+
+        // Lints, and tests the component
+        stage('test') {
+            steps {
+                script {
+                    sh "polymer lint"
+                    sh "polymer test --local chrome"
+                    junit allowEmptyResults: true, testResults: 'wct.xml'
+                }
+            }
+        }
+
+        stage('documentation') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'master') {
+                        build job: 'Kano/components-doc/master', parameters: [
+                            text(name: 'repoUrl', value: 'https://github.com/KanoComponents/kwc-auth'),
+                            text(name: 'componentName', value: 'kwc-auth')
+                        ], wait: false
+                    }
+                }
+            }
+        }
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+    }
 }
