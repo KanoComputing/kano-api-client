@@ -535,6 +535,7 @@ function real1() {
         });
     });
 }
-real1();
-
+if (navigator.online) {
+  real1();
+}
 // END tests with real API
