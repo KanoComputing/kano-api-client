@@ -58,11 +58,8 @@ API.login({
   console.error(err)
 })
 ```
-logout which doesn't take any arguments
+Functions which doesn't take any arguments
 ```js
 API.logout()
-```
-### expose value
-```js
-API.isLoggedIn // false or username (if logged in)
+API.isLoggedIn() // returns false or username (if logged in)
 ```
