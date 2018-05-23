@@ -358,11 +358,11 @@
 			var Node = USE('./node');
 			function State(){
 				var t;
-				if(perf){
-					t = start + perf.now();
-				} else {
+				/*if(perf){
+					t = start + perf.now(); // Danger: Accuracy decays significantly over time, even if precise.
+				} else {*/
 					t = time();
-				}
+				//}
 				if(last < t){
 					return N = 0, last = t + State.drift;
 				}
@@ -496,7 +496,7 @@
 					if(!(is = valid(v,k,n, at,env))){ return }
 					if(!k){
 						at.node = at.node || n || {};
-						if(obj_has(v, Node._)){
+						if(obj_has(v, Node._)){ // && Node.soul(v) ? for safety ?
 							at.node._ = obj_copy(v._);
 						}
 						at.node = Node.soul.ify(at.node, Val.rel.is(at.rel));
@@ -650,7 +650,7 @@
 				return Gun.create(this._ = {gun: this, opt: o});
 			}
 
-			Gun.is = function(gun){ return (gun instanceof Gun) };
+			Gun.is = function(gun){ return (gun instanceof Gun) || (gun && gun._ && gun._.gun && true) || false };
 
 			Gun.version = 0.9;
 
@@ -841,7 +841,7 @@
 
 			console.debug = function(i, s){ return (console.debug.i && i === console.debug.i && console.debug.i++) && (console.log.apply(console, arguments) || s) };
 
-			Gun.log = function(){ return !Gun.log.off && console.log.apply(console, arguments), [].slice.call(arguments).join(' ') };
+			Gun.log = function(){ return (!Gun.log.off && console.log.apply(console, arguments)), [].slice.call(arguments).join(' ') };
 			Gun.log.once = function(w,s,o){ return (o = Gun.log.once)[w] = o[w] || 0, o[w]++ || Gun.log(s) }
 
 			;		Gun.log.once("welcome", "Hello wonderful person! :) Thanks for using GUN, feel free to ask for help on https://gitter.im/amark/gun and ask StackOverflow questions tagged with 'gun'!");
@@ -909,11 +909,11 @@
 			// is complicated and was extremely hard to build. If you port GUN to another
 			// language, consider implementing an easier API to build.
 			var Gun = USE('./root');
-			Gun.chain.chain = function(){
-				var at = this._, chain = new this.constructor(this), cat = chain._, root;
+			Gun.chain.chain = function(sub){
+				var gun = this, at = gun._, chain = new (sub || gun).constructor(gun), cat = chain._, root;
 				cat.root = root = at.root;
 				cat.id = ++root.once;
-				cat.back = this._;
+				cat.back = gun._;
 				cat.on = Gun.on;
 				cat.on('in', input, cat); // For 'in' if I add my own listeners to each then I MUST do it before in gets called. If I listen globally for all incoming data instead though, regardless of individual listeners, I can transform the data there and then as well.
 				cat.on('out', output, cat); // However for output, there isn't really the global option. I must listen by adding my own listener individually BEFORE this one is ever called.
@@ -1177,10 +1177,10 @@
 	USE(function(module){
 			var Gun = USE('./root');
 			Gun.chain.get = function(key, cb, as){
-				var gun;
+				var gun, tmp;
 				if(typeof key === 'string'){
 					var back = this, cat = back._;
-					var next = cat.next || empty, tmp;
+					var next = cat.next || empty;
 					if(!(gun = next[key])){
 						gun = cache(key, back);
 					}
@@ -1201,6 +1201,9 @@
 				} else
 				if(num_is(key)){
 					return this.get(''+key, cb, as);
+				} else
+				if(tmp = rel.is(key)){
+					return this.get(tmp, cb, as);
 				} else {
 					(as = this.chain())._.err = {err: Gun.log('Invalid get request!', key)}; // CLEAN UP
 					if(cb){ cb.call(as, as._.err); }
@@ -1264,7 +1267,7 @@
 				if(typeof cb === 'string'){
 					as.soul = cb;
 				} else {
-					as.ack = cb;
+					as.ack = as.ack || cb;
 				}
 				if(at.soul){
 					as.soul = at.soul;
@@ -1369,6 +1372,7 @@
 			} function no(v,k){ if(v){ return true } }
 
 			function map(v,k,n, at){ var as = this;
+				//if(Gun.is(v)){} // TODO: HANDLE!
 				if(k || !at.path.length){ return }
 				(as.res||iife)(function(){
 					var path = at.path, ref = as.ref, opt = as.opt;
@@ -1604,8 +1608,6 @@
 				if(tmp = cat.next){
 					if(tmp[at.get]){
 						obj_del(tmp, at.get);
-					} else {
-
 					}
 				}
 				if(tmp = cat.ask){
@@ -1796,13 +1798,13 @@
 					mesh.say(msg);
 				};
 
-				mesh.hear = function(msg, peer){
-					if(!msg){ return }
-					var dup = ctx.dup, id, hash, tmp = msg[0];
-					try{msg = JSON.parse(msg);
+				mesh.hear = function(raw, peer){
+					if(!raw){ return }
+					var dup = ctx.dup, id, hash, msg, tmp = raw[0];
+					try{msg = JSON.parse(raw);
 					}catch(e){}
 					if('{' === tmp){
-
+						if(!msg){ return }
 						if(dup.check(id = msg['#'])){ return }
 						dup.track(id, true).it = msg; // GUN core also dedups, so `true` is needed.
 						if((tmp = msg['@']) && msg.put){
@@ -1821,7 +1823,7 @@
 						return;
 					} else
 					if('[' === tmp){
-
+						if(!msg){ return }
 						var i = 0, m;
 						while(m = msg[i++]){
 							mesh.hear(m, peer);
@@ -1904,7 +1906,7 @@
 								msg['##'] = hash;
 							}
 							(tmp = dup.s)[hash = msg['@']+hash] = tmp[msg['#']];
-							msg['#'] = hash;
+							msg['#'] = hash || msg['#'];
 							if(put){ (msg = Type.obj.to(msg)).put = _; }
 						}
 						var i = 0, to = []; Type.obj.map(ctx.opt.peers, function(p){
@@ -2001,9 +2003,7 @@
 					wire.onerror = function(error){
 						reconnect(peer); // placement?
 						if(!error){ return }
-						if(error.code === 'ECONNREFUSED'){
-							//reconnect(peer, as);
-						}
+						if(error.code === 'ECONNREFUSED');
 					};
 					wire.onopen = function(){
 						mesh.hi(peer);
@@ -2026,337 +2026,562 @@
 
 	}());
 
-	var kanoApiClient = settings => {
-	  var stackOfXhr = {}; 
-	  // libraries
-	  var gun = Gun();
-	  // functions
-	  function getter(query,params,sync){
-	    return new Promise((resolve, reject) => {
-	      query.split(".").reduce((db,val) => {
-	        return db.get(val)
-	      }, gun).once(data => {
-	        if (sync && data === undefined) { //
-	          if (query.startsWith("user.")) {
-	            var user = gun.get("user");
-	            getDataFromServer("/users/me").then(serverRes => { 
-	              var serverData = JSON.parse(serverRes, (key, value) => {
-	                if (Array.isArray(value)) {
-	                  value = value.reduce((accumulator, currentValue, currentIndex) => {
-	                    accumulator["Array_"+currentIndex] = currentValue;
-	                    return accumulator
-	                  },{});
+	function kanoApiClient (settings) {
+	    if (!settings) throw new Error('settings are needed eg. client({defaultUrl:\'./mockApi\'})');
+	    let ls = localStorage;
+	    if (settings.localStorage) {
+	        ls = settings.localStorage;
+	    }
+	    if (!settings.defaultUrl) throw new Error('defaultUrl is needed eg. client({defaultUrl:\'./mockApi\'})');
+	    const stackOfXhr = {};
+	    // libraries
+	    const gun = Gun();
+	    // functions
+	    function ifArray(data) {
+	        if (typeof data === 'object' && Object.keys(data).length && '0123456789'.startsWith(Object.keys(data).join('').slice(0, -1))) {
+	            return Object.keys(data).reduce((a, v) => {
+	                if (v !== '_' && v === +v) {
+	                    a.push(v);
 	                }
-	                return value
-	              });
-	              Object.keys(serverData.data).map( key => {
-	                user.get(key.replace("_","")).put(serverData.data[key]);
-	              });
-	            }).then( _ => {
-	              query.split(".").reduce((db,val) => {
-	                return db.get(val)
-	              }, gun).once( retry => {
-	                data = retry;
-	              });
-	            }).then( _ => {
-	              resolve(data);
-	            });
-	          } 
-	        } else {
-	          resolve(data);
+	                return a;
+	            }, []).map(value => data[value]);
 	        }
-	      });
-	    })
-	  }
-	  function setter(query, valueToSet, params) {
-	    if (Array.isArray(valueToSet)) {
-	      valueToSet = valueToSet.reduce((accumulator, currentValue, currentIndex) => {
-	        return accumulator["Array_" + currentIndex] = currentValue
-	      },{});
+	        return data;
 	    }
-	    var oldValue;
-	    var newValue;
-	    return getter(query).then(data => {
-	      oldValue = data;
-	    }).then( _ => {
-	      return query.split(".").reduce((db,val) => {
-	        return db.get(val)
-	      }, gun).put(valueToSet)
-	    }).then( _ => {
-	      return getter(query).then(data => {
-	        newValue = data;
-	      })
-	    }).then( _ => {
-	      if (oldValue ==! undefined && JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
-	        // add to postList
-	        console.log("needs sync", newValue);
-	      } else {
-	        console.log("In sync", newValue);
-	      }
-	    }).then( _ => {
-	      return newValue
-	    })
-	  }
-	  
-	  function getDataFromServer(path) {
-	    return new Promise((resolve, reject) => {
-	      if (stackOfXhr[path]) {
-	        stackOfXhr[path].push(resolve);
-	      } else {
-	        stackOfXhr[path]=[resolve];
-	        if (!navigator.onLine) {
-	          reject("offline");
-	        }
-	        getter("user._accessToken").then(accessToken => {
-	          var xhr = new XMLHttpRequest();
-	          xhr.withCredentials = true;
-	 
-	          xhr.addEventListener("readystatechange", function () {
-	            if (this.readyState === 4) {
-	              if (this.responseText) {
-			var responseText = this.responseText;
-	                stackOfXhr[path].forEach(function(resolved) {
-	                  resolved(responseText);
-	                });
-	                delete(stackOfXhr[path]);
-	              } else {
-	                reject("No Response");
-	              }
-	            }
-	          });
-	          xhr.open("GET", settings.worldUrl + path);
-	          xhr.setRequestHeader("content-type", "application/json");
-	          xhr.setRequestHeader("accept", "application/json");
-	          xhr.setRequestHeader("authorization", "Bearer "+accessToken);
-	          if (settings.log){ console.log("get", path ); }
-	          xhr.send({});
-	        });
-	      }
-	    })
-	  }
-	  function poster(payload, path) {
-	    return new Promise((resolve, reject) => {
-	      if (!navigator.onLine) {
-	        reject("offline");
-	      }
-	      var xhr = new XMLHttpRequest();
-
-	      xhr.addEventListener("readystatechange", function () {
-	        if (this.readyState === 4) {
-	          if (this.responseText) {
-	            resolve(this.responseText);
-	          } else {
-	            reject();
-	          }
-	        }
-	      });
-
-	      xhr.open("POST", settings.worldUrl + path);
-
-	      xhr.setRequestHeader('Accept', 'application/json');
-	      xhr.setRequestHeader('Content-Type', 'application/json');
-	      xhr.setRequestHeader("cache-control", "no-cache");
-	      
-	      xhr.send(JSON.stringify( payload ));
-	    })
-	  }
-	  function sha256 (str) {
-	  // We transform the string into an arraybuffer.
-	    var buffer = new TextEncoder('utf-8').encode(str);
-	    return crypto.subtle.digest('SHA-256', buffer).then(function (hash) {
-	      return hash
-	    })
-	  }
-	  function ab2str (buf) {
-	    return String.fromCharCode.apply(null, new Uint16Array(buf))
-	  }
-	  function str2ab (str) {
-	    var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
-	    var bufView = new Uint16Array(buf);
-	    for (var i = 0, strLen = str.length; i < strLen; i++) {
-	      bufView[i] = str.charCodeAt(i);
-	    }
-	    return buf
-	  }
-	  function arrayToBase64String (ab) {
-	    var dView = new Uint8Array(ab);   // Get a byte view
-	    var arr = Array.prototype.slice.call(dView); // Create a normal array
-	    var arr1 = arr.map(function (item) {
-	      return String.fromCharCode(item)    // Convert
-	    });
-	    return window.btoa(arr1.join(''))  // Form a string
-	  }
-	  if (settings && settings.worldUrl) {
-	    const API = {
-	      create: args => {
-	        return API.update(args)
-	      },
-	      read: args => {
-	        if (args.populate) {
-	          var allThePromises = [];
-	          var bulid = JSON.parse(JSON.stringify(args.populate),(_, value) => {
-	            if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
-	              if (settings.resolve) {
-	                allThePromises.push(getter(value, args.params, args.sync) );
-	                return value
-	              }
-	              return getter(value, args.params, args.sync)
+	    function getDataFromServer(path) {
+	        return new Promise((resolve, reject) => {
+	            if (stackOfXhr[path]) {
+	                stackOfXhr[path].push(resolve);
 	            } else {
-	              return value
-	            }
-	          });
-	          if (settings.resolve) {
-	            return Promise.all(allThePromises).then((values) => {
-	              var i = values.length - 1;
-	              return JSON.parse(JSON.stringify(args.populate),(_, value) => {
-	                if (typeof value === 'string' && /[_a-z\-\.]*/i.test(value)) {
-	                  return values[i--]
-	                } else {
-	                  return value
+	                stackOfXhr[path] = [resolve];
+	                if (!navigator.onLine) {
+	                    reject(new Error('offline'));
 	                }
-	              })
-	            })
-	          } else {
-	            return bulid
-	          }
-	        } else {
-	          return {}
-	        }
-	      },
-	      update: args => {
-	        Object.keys(args.params).forEach(key => {
-	          setter(key, args.params[key]);
-	        });
-	        return API.read(Object.assign({sync: true}, args))
-	      },
-	      delete: args => {
-	        // TODO map value to Null
-	        return API.update(JSON.parse(JSON.stringify(args.params), _ => {
-	          return null
-	        }))
-	      },
-	      getUser: args => {
-	        //TODO test if update okay
-	        return API.read({params:{user: args.params}, populate: args.populate})
-	      },
-	      login: args => {
-	        if (!args.params) {
-	          throw "need params e.g. API.login({params: {username: 'marcus7777', password: 'monkey123'}})"
-	        }
-	        if (!args.params.username) {
-	          throw "need a username e.g. {username: 'marcus7777', password: 'monkey123'}"
-	        }
-	        args.params.username = args.params.username.toLowerCase();
-	        
-	        // are you login already?
-	        return API.read({populate: {username: "user.username", _localToken: "user._localToken", _accessToken: "user._accessToken" }, sync: false}).then(async user => {
-	          if (!user) {
-	            console.error("error got user");
-	          }
-	          if (await user.username === undefined) {
-	            if (!args.params.password) {
-	              throw "need a password e.g. {username: 'marcus7777', password: 'monkey123'}"
-	            }
-	            return sha256(JSON.stringify(args.params)).then(localhash => {
-	              return crypto.subtle.importKey("raw", localhash, {name: "AES-CBC"}, true, ["encrypt", "decrypt"])
-	            }).then( key => {
-	              return sha256(args.params.username).then(userSHA => {
-	                var data = localStorage.getItem(arrayToBase64String(userSHA));
-	                localStorage.removeItem(arrayToBase64String(userSHA));
-	                if (data) {
-	                  window.crypto.subtle.decrypt(
-	                    {
-	                      name: "AES-CBC",
-	                      iv: window.crypto.getRandomValues(new Uint8Array(16)) // iv, //The initialization vector you used to encrypt
-	                    },
-	                    key, //from generateKey or importKey above
-	                    str2ab(data) //ArrayBuffer of the data
-	                  ).then(decrypted => {
-	                    //TODO put ES-CBC
-			    //as no initial Factor I need to chop off the first 8 characters
-	                    localStorage.setItem('gun/', ab2str(decrypted).slice(8));
-	                  }).catch(err => {
-	                    console.error(err);
-	                  });
-	                }
-	                return key
-	              }).then( key => {
-	                // if encrypted data decrypt it
-	                return crypto.subtle.exportKey("jwk",key)
-	              }).then(keydata => {
-	                //returns the exported key data
-	                return keydata.k // save the hard bit
-	              }).then( localToken => {
-	                poster(args.params,"/auth/login").then(res => {
-	                  var token = JSON.parse(res).data.token;
-	                  return API.update({populate:args.populate, params: {
-	                    user: {
-	                      username: args.params.username,
-	                      _accessToken: token, // to access server
-	                      _localToken: localToken, // to encrypt with when logged out
+	                getter('user._accessToken').then((accessToken) => {
+	                    const theFetch = {
+	                        headers: {
+	                            'content-type': 'application/json',
+	                            Accept: 'application/json',
+	                        },
+	                        method: 'GET',
+	                        mode: 'cors',
+	                        redirect: 'follow',
+	                        referrer: 'Api-client',
+	                    };
+	                    if (accessToken) {
+	                        theFetch.headers.authorization = `Bearer ${accessToken}`;
 	                    }
-	                  }})
+	                    fetch(`${settings.defaultUrl}${path}`, theFetch).then(response => response.json()).then((dataFromServer) => {
+	                        if (dataFromServer !== undefined && dataFromServer !== null) {
+	                            stackOfXhr[path].forEach((resolved) => {
+	                                resolved(dataFromServer);
+	                            });
+	                            delete (stackOfXhr[path]);
+	                        } else {
+	                            reject(new Error('No Response'));
+	                        }
+	                    });
+	                    if (settings.log) { console.log('get', path); }
 	                });
-	              }).catch( err => {
-	                if (err === "offline") {
-	                  return API.read(args)
-	                }
-	                console.error(err);
-	              })
-	            }).catch(err => {
-	              console.error("error login in :", err);
-	            })
-	          // TODO  if logged in as something else
-	          } else if (await user.username === args.params.username){
-	            if (settings.log){ console.log("you are (and were) logged in :)" ); }
-	          } else if (await user.username !== args.params.username){
-	//            API.logout()
-	            // API.login(args)
-
-	          }
-	          
-	          return API.read(Object.assign({sync: true}, args))
-	        })
-	      },
-	      logout: args => {
-	        getter("user").then(async user => {
-	          var localToken = await user._localToken;
-	          if (localToken) {
-	            window.crypto.subtle.importKey(
-	              "jwk", {  
-	                kty: "oct",
-	                k: localToken,
-	                alg: "A256CBC",
-	                ext: true,
-	              },{ 
-	                name: "AES-CBC",
-	              },false, ["encrypt", "decrypt"]
-	            ).then(key => {
-	              var iv = window.crypto.getRandomValues(new Uint8Array(16));
-	              window.crypto.subtle.encrypt(
-	                {
-	                  name: "AES-CBC",
-	                  iv: iv,
-	                },key, str2ab("12345678"+localStorage.getItem("gun/")) // add 8 chr 
-	              ).then(encrypted => {
-	                sha256(user.username).then(userSHA => { 
-	                  localStorage.setItem(arrayToBase64String(userSHA), ab2str(encrypted));
-	                  localStorage.removeItem('gun/');
-	                });
-	              }).catch(function(err){
-	                console.error(err);
-	              });
-	            });
-	          }
-	        }).catch(err => {
-	          console.error(err);
+	            }
 	        });
-	      }
+	    }
+	    if (settings.getDataFromServer) {
+	        getDataFromServer = settings.getDataFromServer;
+	    }
+	    function getter(query, params, sync) {
+	        if (!query || query === 'undefined') {
+	            throw new Error('no query');
+	        }
+	        return new Promise((resolve, reject) => {
+	            const loggedInUser = JSON.parse(ls.getItem('user') || 'null');
+	            let queryRun = query;
+	            if (loggedInUser) {
+	                if (query === 'user._accessToken') {
+	                    resolve(loggedInUser._accessToken);
+	                    return;
+	                } else if (query === 'user.username') {
+	                    resolve(loggedInUser.username);
+	                    return;
+	                } else if (query === 'user._localToken') {
+	                    resolve(loggedInUser._localToken);
+	                    return;
+	                } else if (query.startsWith('user.') || query === 'user') {
+	                    queryRun = query.replace('user', loggedInUser.mapTo);
+	                }
+	            } else if (query.startsWith('user.')) {
+	                resolve(undefined);
+	                return;
+	            }
+	            queryRun.split('.*')[0].split('.').reduce(
+	                (db, val) => // TODO use "gun load"  if ".*"
+	                    db.get(val)
+	                , gun,
+	            ).once((data) => {
+	                if (sync && data === undefined) {
+	                    let gunData = data;
+	                    if (query.startsWith('users.')) {
+	                        const username = query.split('.')[1];
+	                        const user = gun.get('users').get(query.split('.')[1]);
+	                        if (params === 'check' && query.split('.').length === 2) {
+	                            getDataFromServer(`accounts/checkUsernameExists/${username}`).then((serverRes) => {
+	                                const theData = JSON.parse(serverRes.data);
+	                                resolve(theData);
+	                                if (theData) {
+	                                    user.set({});
+	                                }
+	                            });
+	                        } else {
+	                            getDataFromServer(`/users/?username=${query.split('.')[1]}`).then((serverRes) => {
+	                                const serverData = JSON.parse(serverRes, (key, value) => {
+	                                    let theValue = value;
+	                                    if (Array.isArray(value)) {
+	                                        theValue = value.reduce((acc, curValue, curIndex) => {
+	                                            acc[curIndex] = curValue;
+	                                            return acc;
+	                                        }, {});
+	                                    }
+	                                    return theValue;
+	                                });
+	                                Object.keys(serverData.data).forEach((key) => {
+	                                    user.get(key.replace('_', '')).put(serverData.data[key]);
+	                                });
+	                            }).then(() => query.split('.').reduce((db, val) => db.get(val), gun).once((retry) => {
+	                                gunData = retry;
+	                            })).then(() => {
+	                                resolve(ifArray(gunData));
+	                            })
+	                                .catch((e) => {
+	                                    reject(e);
+	                                });
+	                        }
+	                    }
+	                } else {
+	                    resolve(ifArray(data));
+	                }
+	            });
+	        });
+	    }
+	    function arraysToObject(valueToSet) {
+	        return JSON.parse(JSON.stringify(valueToSet, (_, value) => {
+	            if (Array.isArray(value)) {
+	                return value.reduce((accumulator, currentValue, currentIndex) => {
+	                    const theAccumulator = accumulator;
+	                    theAccumulator[currentIndex] = currentValue;
+	                    return theAccumulator;
+	                }, {});
+	            }
+	            return value;
+	        }));
+	    }
+	    function setter(query, valueToSet) {
+	        const loggedInUser = JSON.parse(ls.getItem('user') || 'null');
+	        let theQuery = query;
+	        if (loggedInUser) {
+	            if (query.startsWith('user.') || query === 'user') {
+	                theQuery = query.replace('user', loggedInUser.mapTo);
+	            }
+	        }
+
+	        let oldValue;
+	        let newValue;
+	        return getter(theQuery).then((data) => {
+	            oldValue = data;
+	        }).then(() => {
+	            theQuery.split('.').reduce((db, val) => db.get(val), gun).put(arraysToObject(valueToSet));
+	        }).then(() => getter(theQuery))
+	            .then((data) => {
+	                newValue = data;
+	            })
+	            .then(() => {
+	                if (oldValue !== undefined || JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+	                    if (settings.log) { console.log('needs sync', newValue); }
+	                    // TODO add to postList
+	                }
+	            })
+	            .then(() => newValue);
+	    }
+	    function onIdle(itime, doAfter) {
+	        return new Promise((resolve) => {
+	            let trys = 0;
+	            const onIdleTest = () => {
+	                const t = performance.now();
+	                setTimeout(() => {
+	                    trys += 1;
+	                    if (doAfter && trys > doAfter) {
+	                        resolve();
+	                    }
+	                    if (Math.round(performance.now() - t) === Math.round(itime)) {
+	                        resolve();
+	                    } else {
+	                        onIdleTest();
+	                    }
+	                }, itime);
+	            };
+	            onIdleTest();
+	        });
+	    }
+	    function renewToken() {
+	        const user = JSON.parse(ls.getItem('user'));
+	        if (user && user.renew < Date.now() && user._accessToken) {
+	            onIdle(1000, 10).then(() => getDataFromServer('accounts/auth/refresh').then((res) => {
+	                if (settings.log) { console.log(res); }
+	                // duration
+	                // user
+	                if (res.data && res.data.token) {
+	                    const token = res.data.token;
+	                    const duration = res.data.duration;
+	                    const renew = Date.now() + ((duration / 2) * 1000);
+	                    const lUser = ls.getItem('user') || {};
+	                    ls.setItem(
+	                        'user',
+	                        JSON.stringify(Object.assign(lUser, {
+	                            _accessToken: token,
+	                            renew,
+	                        })),
+	                    );
+	                } else {
+	                    throw new Error('no new token');
+	                }
+	            }));
+	        }
+	    }
+	    function poster(data, path, accessToken) {
+	        if (!navigator.onLine) {
+	            throw new Error('offline');
+	        }
+	        const url = settings.defaultUrl + path;
+	        const theFetch = {
+	            body: JSON.stringify(data), // must match 'Content-Type' header
+	            headers: {
+	                'content-type': 'application/json',
+	                Accept: 'application/json',
+	            },
+	            method: 'POST',
+	            mode: 'cors',
+	            redirect: 'follow',
+	            referrer: 'no-referrer',
+	        };
+	        if (accessToken) {
+	            theFetch.headers.authorization = `Bearer ${accessToken}`;
+	        }
+	        return fetch(url, theFetch).then((response) => {
+	            if (response.statusText === 'Conflict' || response.status > 300) {
+	                throw new Error(response.statusText);
+	            } else if (response.bodyUsed === false) {
+	                try {
+	                    return response.json().then((theData) => {
+	                        if (accessToken) {
+	                            renewToken();
+	                        }
+	                        return theData;
+	                    }).catch(e => true);
+	                } catch (e) {
+	                    return true;
+	                }
+	            }
+	        });
+	    }
+	    if (settings.poster) {
+	        poster = settings.poster;
+	    }
+	    function sha256(str) {
+	        // We transform the string into an arraybuffer.
+	        const buffer = new TextEncoder('utf-8').encode(str);
+	        return crypto.subtle.digest('SHA-256', buffer).then(hash => hash);
+	    }
+	    function ab2str(buf) {
+	        return String.fromCharCode.apply(null, new Uint16Array(buf));
+	    }
+	    function str2ab(str) {
+	        const buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
+	        const bufView = new Uint16Array(buf);
+	        for (let i = 0, strLen = str.length; i < strLen; i += 1) {
+	            bufView[i] = str.charCodeAt(i);
+	        }
+	        return buf;
+	    }
+	    function arrayToBase64(ab) {
+	        const dView = new Uint8Array(ab); // Get a byte view
+	        const arr = Array.prototype.slice.call(dView); // Create a normal array
+	        const arr1 = arr.map(item =>
+	            String.fromCharCode(item), // Convert
+	        );
+	        return window.btoa(arr1.join('')); // Form a string
+	    }
+	    function base64ToArrayBuffer(s) {
+	        const asciiString = window.atob(s);
+	        return new Uint8Array([...asciiString].map(char => char.charCodeAt(0)));
+	    }
+	    function keyFromLocalToken(localToken) {
+	        return window.crypto.subtle.importKey('jwk', {
+	            kty: 'oct', k: localToken, alg: 'A256CBC', ext: true,
+	        }, { name: 'AES-CBC' }, false, ['encrypt', 'decrypt']);
+	    }
+	    function encryptString(localToken, data, ivAsString) {
+	        return keyFromLocalToken(localToken).then((key) => {
+	            const iv = new Uint8Array(ivAsString.split(','));
+	            return window.crypto.subtle.encrypt({
+	                name: 'AES-CBC',
+	                iv,
+	            }, key, str2ab(`12345678${data}`)); // add 8 chr due to droppinginitial vector
+	        }).then(encrypted => arrayToBase64(encrypted));
+	    }
+	    // function decryptString(localToken, data, ivAsString) {
+	    // return keyFromLocalToken(localToken).then((key) => {
+	    // const iv = new Uint8Array(ivAsString.split(','));
+	    //
+	    // return window.crypto.subtle.decrypt(
+	    // {
+	    // name: 'AES-CBC',
+	    // iv
+	    // },
+	    // key, // from generateKey or importKey above
+	    // base64ToArrayBuffer(data)
+	    // );
+	    // }).then((decrypted) => {
+	    // return ab2str(decrypted).slice(8);
+	    // });
+	    // }
+	    function makeLocalToken(username, password) {
+	        if (!username || !password) {
+	            throw new Error('need Both username & password');
+	        }
+	        return sha256(username + password).then(localhash => crypto.subtle.importKey('raw', localhash, { name: 'AES-CBC' }, true, ['encrypt', 'decrypt'])).then(key => sha256(username).then((userSHA) => {
+	            const userHash = arrayToBase64(userSHA);
+	            const data = ls.getItem(userHash);
+	            const iv = ls.getItem(`${userHash}iv`);
+	            if (data) {
+	                ls.removeItem(userHash);
+	                ls.removeItem(`${userHash}iv`);
+	                window.crypto.subtle.decrypt(
+	                    {
+	                        name: 'AES-CBC',
+	                        iv: new Uint8Array(iv.split(',')),
+	                    },
+	                    key, // from generateKey or importKey above
+	                    base64ToArrayBuffer(data), // ArrayBuffer of the data
+	                ).then(decrypted =>
+	                // TODO put ES-CBC
+	                // as no initial Factor I need to chop off the first 8 characters
+	                    ls.setItem('user', ab2str(decrypted).slice(8))).then(() => {
+	                }).catch((err) => {
+	                    console.error(err);
+	                });
+	            }
+	            return key;
+	        }).then(theKey =>
+	        // if encrypted data decrypt it
+	            crypto.subtle.exportKey('jwk', theKey)).then(keydata =>
+	        // returns the exported key data
+	            keydata.k, // save the hard bit
+	        ));
+	    }
+	    const API = {
+	        isLoggedIn: () => {
+	            if (ls.getItem('user')) {
+	                return JSON.parse(ls.getItem('user')).username;
+	            }
+	            return false;
+	        },
+	        check: query => getter(query, 'check', true).then(data => !!data),
+	        forgotUsername: (args) => {
+	            if (args && args.params && args.params.user && args.params.user.email) {
+	                const email = args.params.user.email;
+	                if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}/gi.test(email)) {
+	                    return poster(args.params.user, 'accounts/forgotUsername').then((ok) => {
+	                        if (ok === true) {
+	                            return API.read(args);
+	                        }
+	                        throw new Error('invalid email');
+	                    });
+	                }
+	                throw new Error('invalid email');
+	            } else {
+	                throw new Error('need a params.user.email in the Object');
+	            }
+	        },
+	        forgotPassword: (args) => {
+	            if (args && args.params && args.params.user && args.params.user.username) {
+	                const username = args.params.user.username;
+	                if (/^[0-9a-z]*$/gi.test(username)) {
+	                    return poster(args.params.user, 'accounts/forgotPassword').then((ok) => {
+	                        if (ok === true) {
+	                            return API.read(args);
+	                        }
+	                        throw new Error('invalid username');
+	                    });
+	                }
+	                throw new Error('invalid username');
+	            } else {
+	                throw new Error('need a params.user.username in the Object');
+	            }
+	        },
+	        create: args => API.logout().then(() => {
+	            if (args.params.user) {
+	                const argUser = args.params.user;
+	                return sha256(argUser.username).then((hash) => {
+	                    const userHash = arrayToBase64(hash);
+	                    if (ls.getItem(userHash)) {
+	                        throw new Error('User already exists');
+	                    } else if (argUser.username && argUser.password && argUser.email) {
+	                        if (!argUser.erole) { argUser.erole = 'notset'; }
+	                        //  if (!args.params.user.epurpose) {args.params.user.epurpose = "notset"}
+	                        return poster(argUser, 'accounts').then((res) => {
+	                            if (settings.log) { console.log(res); }
+	                            // duration
+	                            // user
+	                            if (res.data && res.data.token) {
+	                                const token = res.data.token;
+	                                const duration = res.data.duration;
+	                                const renew = Date.now() + ((duration / 2) * 1000);
+	                                const user = Object.assign({
+	                                    username: args.params.user.username,
+	                                }, res.data.user);
+
+	                                if (user.username) {
+	                                    return makeLocalToken(
+	                                        user.username,
+	                                        args.params.user.password,
+	                                    ).then((localToken) => {
+	                                        ls.setItem(
+	                                            'user',
+	                                            JSON.stringify(Object.assign(ls.user || {}, {
+	                                                renew,
+	                                                userHash,
+	                                                _accessToken: token,
+	                                                _localToken: localToken,
+	                                                mapTo: `users.${user.username}`,
+	                                                username: user.username,
+	                                            })),
+	                                        );
+	                                        return user;
+	                                    });
+	                                }
+	                            }
+	                            throw new Error('No token from serve');
+	                        }).then(user => API.update(Object.assign(args, {
+	                            params: {
+	                                user,
+	                            },
+	                        })));
+	                    }
+	                    throw new Error('Need an user.username && user.password & user.email');
+	                }).catch((err) => {
+	                    throw err;
+	                });
+	            }
+	        }),
+	        read: args => new Promise((resolve) => {
+	            resolve(API._read(Object.assign({ sync: true }, args)));
+	        }),
+	        _read: (args) => {
+	            if (args.populate) {
+	                const allThePromises = [];
+	                const allThePromisesKeys = [];
+	                const bulid = JSON.parse(JSON.stringify(args.populate), (_, value) => {
+	                    if (typeof value === 'string' && /^[_a-z0-9\-.]*$/i.test(value)) {
+	                        if (settings.resolve) {
+	                            allThePromisesKeys.push(value);
+	                            allThePromises.push(getter(value, args.params, args.sync));
+	                            return value;
+	                        }
+	                        return getter(value, args.params, args.sync);
+	                    }
+	                    return value;
+	                });
+	                if (settings.resolve) {
+	                    return Promise.all(allThePromises).then(values => JSON.parse(JSON.stringify(args.populate), (_, value) => {
+	                        if (typeof value === 'string' && /^[_a-z0-9\-.]*$/i.test(value)) {
+	                            return values[allThePromisesKeys.indexOf(value)];
+	                        }
+	                        return value;
+	                    }));
+	                }
+	                return bulid;
+	            }
+	            return {};
+	        },
+	        login: (args) => {
+	            if (!args.params) {
+	                throw new Error("need params e.g. API.login({params: {user: {username: 'marcus7777', password: 'monkey123'}}})");
+	            }
+	            if (!args.params.user) {
+	                throw new Error("need a username e.g. {username: 'marcus7777', password: 'monkey123'}");
+	            }
+	            // are you login already?
+	            return API.read({
+	                populate: {
+	                    username: 'user.username',
+	                    _localToken: 'user._localToken',
+	                    _accessToken: 'user._accessToken',
+	                },
+	                sync: false,
+	            }).then(async (user) => {
+	                if (!user) {
+	                    if (settings.log) { console.error('error got user'); }
+	                } else if (settings.log) { console.log('user', user); }
+	                if (await user.username === undefined) { // so you are not logged in
+	                    if (!args.params.user.password) {
+	                        throw new Error("need a password e.g. username: 'marcus7777', password: 'monkey123'");
+	                    }
+	                    return makeLocalToken(args.params.user.username.toLowerCase(), args.params.user.password).then((localToken) => {
+	                        if (!ls.getItem('user')) {
+	                            return poster(args.params.user, 'accounts/auth').then((res) => {
+	                                const token = res.data.token;
+	                                const duration = res.data.duration;
+	                                const renew = Date.now() + ((duration / 2) * 1000);
+
+	                                ls.setItem('user', JSON.stringify({
+	                                    mapTo: `users.${args.params.user.username}`,
+	                                    username: args.params.user.username,
+	                                    _localToken: localToken, // to encrypt with when logged out
+	                                    _accessToken: token, // to access server
+	                                    renew,
+	                                }));
+	                            }).then(() => API.read({ populate: args.populate }));
+	                        }
+	                        return API.read({ populate: args.populate });
+	                    }).catch((err) => {
+	                        throw err;
+	                    });
+	                    // TODO  if logged in as something else
+	                } else if (await user.username === args.params.username) {
+	                    if (settings.log) { console.log('you are (and were) logged in :)'); }
+	                } else if (await user.username !== args.params.username) {
+	                    return API.logout().then(() => API.login(args));
+	                }
+	                return API.read(Object.assign({ sync: true }, args));
+	            });
+	        },
+	        update: (args) => {
+	            Object.keys(args.params).forEach((key) => {
+	                setter(key, args.params[key]);
+	            });
+	            return API.read(Object.assign({ sync: true }, args));
+	        },
+	        logout: () => {
+	            const loggedIn = API.isLoggedIn();
+	            if (loggedIn) {
+	                return getter('user._localToken').then((localToken) => {
+	                    const iv = window.crypto.getRandomValues(new Uint8Array(16)).toString();
+	                    return encryptString(localToken, ls.getItem('user'), iv).then(encrypted => sha256(loggedIn).then((userSHA) => {
+	                        ls.setItem(`${arrayToBase64(userSHA)}iv`, iv);
+	                        ls.setItem(arrayToBase64(userSHA), encrypted);
+	                        ls.removeItem('user');
+	                    })).catch((e) => {
+	                        throw e;
+	                    });
+	                }).catch((e) => {
+	                    throw e;
+	                });
+	            } // not logged in
+	            return new Promise((resolve) => {
+	                resolve(false);
+	            });
+	        },
 	    };
-	    return API
-	  } else {
-	    console.error("Need a worldUrl");
-	  }
+	    return API;
 	}
 
 	return kanoApiClient;
