@@ -1,7 +1,13 @@
 Install as a Bower component then import clients from a client API
 ```js
-import client from './kano-api-client.js';
+import client from '/bower_components/kano-api-client/kano-api-client.js';
 ```
+or
+```html
+<link rel="import" href="/bower_components/kano-api-client/kano-api-client.html">
+<!-- will expose `window.Kano.apiClient` -->
+```
+
 Assign the API to a variable including the settings. The settings options are our worldUrl,resolve and log
 
 worldUrl: The URL of the API you are querying.
@@ -11,7 +17,7 @@ resolve: If result is true all populated Returns will be their values otherwise 
 log: if you can't work out what's going on set this.
 ```js
 const API = window.Kano.apiClient({
-  worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",
+  defaultUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com/",
   resolve:true,
   log:true,
 })
@@ -22,8 +28,8 @@ here's an example with `login`.
 
 
 ```js
-API.Create({
-{params:{
+API.create({
+ params:{
   user:{ 
     username:"bananabanana2", 
     password:".x&6,-U7ZG&`}c?h",
@@ -32,14 +38,16 @@ API.Create({
   populate:{
     id:"user.id"
   }
-}) == {id:"123456789aoeuidhtn"}
+}) // == {id:"123456789aoeuidhtn"}
 ```
 or
 ```js
 API.login({
   params: {
-    username: "nectarsoft",
-    password: "Chupand0nectar",
+    user: {
+      username: "nectarsoft",
+      password: "Chupand0nectar",
+    },
   },
   populate:{
     id: "user.id",
