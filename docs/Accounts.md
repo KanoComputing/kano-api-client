@@ -52,8 +52,10 @@ API.create({
 ```js
 API.login({
     params: {
-        username: 'bananabanana',
-        password: 'myCoolSecretPassword',
+        user:{
+            username: 'bananabanana',
+            password: 'myCoolSecretPassword',
+        },
     },
     populate: {
         id: 'user.id',
