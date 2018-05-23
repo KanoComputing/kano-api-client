@@ -52,7 +52,7 @@ API.create({
 ```js
 API.login({
     params: {
-        user: {
+        user:{
             username: 'bananabanana',
             password: 'myCoolSecretPassword',
         },
