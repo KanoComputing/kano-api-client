@@ -17,7 +17,7 @@ resolve: If result is true all populated Returns will be their values otherwise 
 log: if you can't work out what's going on set this.
 ```js
 const API = window.Kano.apiClient({
-  worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",
+  defaultUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com/",
   resolve:true,
   log:true,
 })
@@ -44,8 +44,10 @@ or
 ```js
 API.login({
   params: {
-    username: "nectarsoft",
-    password: "Chupand0nectar",
+    user: {
+      username: "nectarsoft",
+      password: "Chupand0nectar",
+    },
   },
   populate:{
     id: "user.id",
