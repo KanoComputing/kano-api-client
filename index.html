@@ -5,7 +5,7 @@
 localStorage.clear()
 
 const API = client({
-  worldUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com",
+  defaultUrl:"http://ksworldapi-dev.us-west-1.elasticbeanstalk.com/",
   resolve:true,
   log:true,
 })
@@ -16,7 +16,13 @@ API.create({
       username: "test" + (Math.random()+"").replace(".",""),
       email: "marcus@kano.me",
       password: "342340bab5uxexeuee4",
-    }
+    },
+  },
+  populate: {
+    name: "user.username",
+    id: "user.id",
+    emarl: "user.email",
+    modified: "user.modified",
   }
 }).then(_ => {
   console.log(_)  
@@ -38,17 +44,20 @@ API.create({
 setTimeout(API.logout, 5000)
 
 setTimeout( _ => {
-  console.log(API.isLoggedIn)
+  console.log(API.isLoggedIn())
   API.login({
     params: {
-      username: "nectarsoft",
-      password: "Chupand0nectar",
+      user: {
+        username: "nectarsoft",
+        password: "Chupand0nectar",
+      },
     },
     populate:{
       id: "user.id",
     },
   }).then(user => {
     console.log(user)
+    console.log(API.isLoggedIn())
   }).catch(err => {
     console.error(err)
   })
