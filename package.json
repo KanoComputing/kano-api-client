@@ -1,5 +1,5 @@
 {
-  "name": "kano-api-client",
+  "name": "@kano/api-client",
   "version": "1.0.0",
   "description": "intercept calls between the server and the client try to minimise them",
   "main": "api-client.js",
@@ -7,20 +7,22 @@
     "test": "test"
   },
   "scripts": {
-    "install": "bower up",
-    "test": "polymer test",
-    "serve": "polymer serve"
+    "test": "polymer test --npm",
+    "serve": "polymer serve --npm"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^4.19.1",
-    "bower": "^1.8.4",
-    "polymer-cli": "^1.6.0",
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-import": "^2.11.0",
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.7.0",
-    "eslint-plugin-standard": "^3.1.0"
+    "eslint-plugin-standard": "^3.1.0",
+    "polymer-cli": "^1.6.0"
+  },
+  "dependencies": {
+    "gun": "#master",
+    "wct-browser-legacy": "^1.0.1"
   }
 }
