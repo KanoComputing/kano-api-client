@@ -77,7 +77,7 @@ suite('client base mocked', () => {
             }),
         });
         const query = 'users.marcus7778';
-        API.check(query).then((exists) => {
+        return API.check(query).then((exists) => {
             assert.equal(exists, false);
         });
     });
@@ -89,7 +89,7 @@ suite('client base mocked', () => {
             }),
         });
         const query = 'users.marcus7777';
-        API.check(query).then((exists) => {
+        return API.check(query).then((exists) => {
             assert.equal(exists, true);
         });
     });
@@ -117,7 +117,7 @@ suite('client base mocked', () => {
                 }));
             },
         });
-        API.forgotUsername({
+        return API.forgotUsername({
             params: {
                 user: {
                     email: 'marcus@hhost.me',
@@ -167,7 +167,7 @@ suite('client base mocked', () => {
                 }));
             },
         });
-        API.forgotPassword({
+        return API.forgotPassword({
             params: {
                 user: {
                     username: 'marcus7777',
@@ -187,7 +187,7 @@ suite('client base mocked', () => {
             },
         });
         try {
-            API.forgotPassword({
+            return API.forgotPassword({
                 params: {
                     user: {
                         username: '...',
@@ -197,7 +197,7 @@ suite('client base mocked', () => {
                 assert.equal(1, 0);
             });
         } catch (e) {
-            assert.equal(e.message, 'invalid username');
+            return assert.equal(e.message, 'invalid username');
         }
     });
 });
@@ -230,7 +230,7 @@ function mock1() {
                         id: 'user.id',
                     },
                 }).then(async (user) => {
-                    assert.equal(await user.id, '5ae9b582a82d9f26ec6ea2ea');
+                    return assert.equal(await user.id, '5ae9b582a82d9f26ec6ea2ea');
                 });
             });
             test('user is logged in', () => {
@@ -252,7 +252,7 @@ function mock1() {
                         },
                     },
                 }).then(() => {
-                    assert.equal(API.isLoggedIn(), name);
+                    return assert.equal(API.isLoggedIn(), name);
                 });
             });
             test('user is logged in and out', () => {
@@ -285,7 +285,7 @@ function mock1() {
                 const API = client({
                     defaultUrl: mockApiUrl,
                 });
-                API.logout().then(() => assert.equal(API.isLoggedIn(), false));
+                return API.logout().then(() => assert.equal(API.isLoggedIn(), false));
             });
             test('user is logged in if off-line', () => {
                 ls.setItem(hashOfName, 'xyEQklDaPj/JfcGsZ+y3WGSmmBBB30exF/Yr6Br86nkgNvvpG0aKdR3wkCyxcDDOAGhNcbLFTWLKG8ov2PPxKz95tYuLMrDa1NE9Fn9AJHVMiYHlgkWzKe+vRaUMO2YGtAZyB/y7U1lX+un8JQfauX/Az7myXeeLq6C4+YzHzTRBuE5Q3bxh1uG9mmHEwqN/cYDA87MpqiTprhMCuUpod8Ven3jpgoVnHuCLkOaUDycgJXwLnasa4PVKoCBiGICLQ/nc78uNmJuL1NgHL2pE64I42ha2+cUDKYf6Zbpzop9H4+P2HTl0v+OZYJMumYaP+iN9NWVRV+yyP7ub4fpHFJb7jyp42kN1eT4lNiq74DcUHks2kBCZunKqeJDmE+xPciql9C53AQVr5+5q/YBxgqw0oOoWeXI5pZ2nXwpn+Fuo4+mzXN414PqTD3omlIJzojCmsIC8u24ZdQxuaT3kq0NL2KxsWM3XQ+GGP4Ol4bUTiUwwIhbmLvyhtylutjiBY/2GDpbX5bCPlEU2WGijsBmRaQIBe2y4nliUNyvT8dT85PBNNBWGU/2eICLxXcxwdAycSoJ/1kqPsdnw4+i95WFhI9iARCosnBzMZQ8tkilrBVD82wN1pAO7rcxwwBmm69vEUm3Tdbm0lXwTx45NKU2dPFr0EUvWV4Mo/0CAyg6qqLKqj1dm9CdvIVK4N+OBao2EoajUepQhOUADM+zX92lJr01/0r+945nupwOlaul2mrPDbjlnEzx4zCFjbFajZIAv0sE9Nh+uIriGo2IegtJa2pIiTzTVEaV+Wd0WZdxReKkfpIYcat1D2kWnQZirkAwI3h+XuVndUbwTo5NQheQIl9hayVXPyaoomIe4jlH8+3VanW8U6DVU90P64AZT');
@@ -332,7 +332,7 @@ suite('client base real', () => {
         const API = client({
             defaultUrl: realApiUrl,
         });
-        assert.equal(API.isLoggedIn(), false);
+        return assert.equal(API.isLoggedIn(), false);
     });
     test('has username been not taken', () => {
         const API = client({
@@ -364,21 +364,21 @@ suite('client base real', () => {
                 },
             });
         } catch (e) {
-            assert.equal(e.message, 'need a params.user.email in the Object');
+            return assert.equal(e.message, 'need a params.user.email in the Object');
         }
     });
     test('forgotUsername for a valid email', () => {
         const API = client({
             defaultUrl: realApiUrl,
         });
-        API.forgotUsername({
+        return API.forgotUsername({
             params: {
                 user: {
                     email: 'marcus@hhost.me',
                 },
             },
         }).then((ok) => {
-            assert.ok(ok);
+            return assert.ok(ok);
         });
     });
     test('forgotUsername for a invalid email', () => {
@@ -386,7 +386,7 @@ suite('client base real', () => {
             defaultUrl: realApiUrl,
         });
         try {
-            API.forgotUsername({
+            return API.forgotUsername({
                 params: {
                     user: {
                         email: '1234567890f7ypfy873pf1234567891234567.com',
@@ -394,7 +394,7 @@ suite('client base real', () => {
                 },
             });
         } catch (e) {
-            assert.equal(e.message, 'invalid email');
+            return assert.equal(e.message, 'invalid email');
         }
     });
     test('forgotPassword for a no username', () => {
@@ -402,28 +402,28 @@ suite('client base real', () => {
             defaultUrl: realApiUrl,
         });
         try {
-            API.forgotPassword({
+            return API.forgotPassword({
                 params: {
                     user: {
                     },
                 },
             });
         } catch (e) {
-            assert.equal(e.message, 'need a params.user.username in the Object');
+            return assert.equal(e.message, 'need a params.user.username in the Object');
         }
     });
     test('forgotPassword for a valid username', () => {
         const API = client({
             defaultUrl: realApiUrl,
         });
-        API.forgotPassword({
+        return API.forgotPassword({
             params: {
                 user: {
                     username: 'marcus7777',
                 },
             },
         }).then((ok) => {
-            assert.ok(ok);
+            return assert.ok(ok);
         });
     });
     test('forgotPassword for a invalid username', () => {
@@ -431,17 +431,17 @@ suite('client base real', () => {
             defaultUrl: realApiUrl,
         });
         try {
-            API.forgotPassword({
+            return API.forgotPassword({
                 params: {
                     user: {
                         username: '...',
                     },
                 },
             }).then(() => {
-                assert.equal(1, 0);
+                return assert.equal(1, 0);
             });
         } catch (e) {
-            assert.equal(e.message, 'invalid username');
+            return assert.equal(e.message, 'invalid username');
         }
     });
 });
@@ -525,12 +525,13 @@ function real1() {
                         username: 'user.username',
                     },
                 })).then(async user => assert.equal(await user.username, name));
+                return assertLoggedInOffline
             });
             test('logout should return promise', () => {
                 const API = client({
                     defaultUrl: realApiUrl,
                 });
-                API.logout().then(() => assert.equal(API.isLoggedIn(), false));
+                return API.logout().then(() => assert.equal(API.isLoggedIn(), false));
             });
         });
     });
