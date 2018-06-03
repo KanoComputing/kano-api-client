@@ -32,8 +32,9 @@ function arrayToBase64(ab) {
     return window.btoa(arr1.join('')); // Form a string
 }
 
-// START tests with mock API
+var assert = chai.assert
 
+// START tests with mock API
 suite('client base mocked', () => {
     test('client throws if no settings', () => {
         try {
