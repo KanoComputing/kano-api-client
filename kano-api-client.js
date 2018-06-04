@@ -1,4 +1,4 @@
-import '../../gun/gun.js';
+import 'gun/gun.js';
 
 export default function (settings) {
     if (!settings) throw new Error('settings are needed eg. client({defaultUrl:\'./mockApi\'})');
