@@ -540,4 +540,20 @@ function real1() {
 if (navigator.online) {
   real1();
 }
+suite('client shares real', () => {
+    test('get a list of shares', () => {
+        const API = client({
+            defaultUrl: realApiUrl,
+        });
+        return API.read({
+            populate: {
+                shares: 'shares',
+            },
+        }).then(async (returning) => {
+            return assert.ok(await returning.shares);
+        }).catch((e) => {
+            return assert.ok(false);
+        });
+    });
+});
 // END tests with real API

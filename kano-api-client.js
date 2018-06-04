@@ -121,14 +121,25 @@ export default function (settings) {
                                     user.get(key.replace('_', '')).put(serverData.data[key]);
                                 });
                             }).then(() => query.split('.').reduce((db, val) => db.get(val), gun).once((retry) => {
-                                gunData = retry;
+                                return gunData = retry;
                             })).then(() => {
-                                resolve(ifArray(gunData));
-                            })
-                                .catch((e) => {
-                                    reject(e);
-                                });
+                                return resolve(ifArray(gunData));
+                            }).catch((e) => {
+                                reject(e);
+                            });
                         }
+                    } else if (query === "shares") {
+                       const shares = gun.get('shares');
+                       getDataFromServer(`shares`).then((serverRes) => {
+                         serverRes.data.map( id => {
+                           shares.get(id).put({ id })
+                         })
+                         return shares.once(gunData => {
+                           resolve(gunData)
+                         })
+                       }).catch((e) => {
+                          reject(e);
+                       });
                     }
                 } else {
                     resolve(ifArray(data));
