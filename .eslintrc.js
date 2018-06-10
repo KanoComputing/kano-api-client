@@ -1,28 +1,28 @@
 module.exports = {
-    extends: "kano",
-    rules: {
-        "prefer-destructuring": [
-            "error",
-            { "array": false, "object": false },
-            { "enforceForRenamedProperties": false }
-        ],
-        "arrow-body-style": ["error", "always"],
-        "comma-dangle": ["error", "never"],
-        "no-console":0,
-        "no-underscore-dangle":0,
-        "max-len":0,
-        "no-use-before-define":0
+    "env": {
+        "browser": true,
+        "es6": true
     },
-    "globals"   : {
-        /* MOCHA */
-        "describe"   : false,
-        "it"         : false,
-        "before"     : false,
-        "beforeEach" : false,
-        "after"      : false,
-        "afterEach"  : false,
-        "expect"     : false,
-        /* Gun */
-        Gun          : false,
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "rules": {
+        "indent": [
+            "error",
+            4
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": [
+            "error",
+            "single"
+        ],
+        "semi": [
+            "error",
+            "always"
+        ]
     }
 };

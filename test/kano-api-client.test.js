@@ -555,5 +555,19 @@ suite('client shares real', () => {
             return assert.ok(false);
         });
     });
+    test('get a shares', () => {
+        const API = client({
+            defaultUrl: realApiUrl,
+        });
+        return API.read({
+            populate: {
+                slug: 'shares.4.slug',
+            },
+        }).then(async (returning) => {
+            return assert.ok(await returning.slug);
+        }).catch((e) => {
+            return assert.ok(false);
+        });
+    });
 });
 // END tests with real API
