@@ -128,7 +128,7 @@ export default function (settings) {
                   }
                 });
               } else {
-                return await getDataFromServer(`/users/?username=${queryAsArray[1]}`).then(serverRes => {
+                return await getDataFromServer(`users/?username=${queryAsArray[1]}`).then(serverRes => {
                   const serverData = JSON.parse(serverRes, (key, value) => {
                     let theValue = value;
                     if (Array.isArray(value)) {
