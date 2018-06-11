@@ -541,6 +541,7 @@ if (navigator.online) {
   real1();
 }
 suite('client shares real', () => {
+    localStorage.clear();
     test('get a list of shares', () => {
         const API = client({
             defaultUrl: realApiUrl,
@@ -565,6 +566,20 @@ suite('client shares real', () => {
             },
         }).then(async (returning) => {
             return assert.ok(await returning.slug);
+        }).catch((e) => {
+            return assert.ok(false);
+        });
+    });
+    test('get a users shares', () => {
+        const API = client({
+            defaultUrl: realApiUrl,
+        });
+        return API.read({
+            populate: {
+                shares: 'users.nectarsoft.shares',
+            },
+        }).then(async (returning) => {
+            return assert.ok(await Array.isArray(returning.shares));
         }).catch((e) => {
             return assert.ok(false);
         });

@@ -10,7 +10,6 @@ export default function (settings) {
 
   if (!settings.defaultUrl) throw new Error('defaultUrl is needed eg. client({defaultUrl:\'./mockApi\'})');
   const stackOfXhr = {}; // libraries
-
   const gun = Gun(); // functions
 
   function ifArray(data) {
@@ -23,7 +22,6 @@ export default function (settings) {
         return a;
       }, []).map(value => data[value]);
     }
-
     return data;
   }
 
@@ -54,7 +52,14 @@ export default function (settings) {
             theFetch.headers.authorization = `Bearer ${accessToken}`;
           }
 
-          fetch(`${settings.defaultUrl}${path}`, theFetch).then(response => response.json()).then(dataFromServer => {
+          fetch(`${settings.defaultUrl}${path}`, theFetch).then(response => {
+            var contentType = response.headers.get("content-type");
+            if(contentType && contentType.includes("application/json")) {
+              return response.json();
+            } else {
+              return response.text();
+            }
+          }).then(dataFromServer => {
             if (dataFromServer !== undefined && dataFromServer !== null) {
               stackOfXhr[path].forEach(resolved => {
                 resolved(dataFromServer);
@@ -332,7 +337,6 @@ export default function (settings) {
 
   function str2ab(str) {
     const buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
-
     const bufView = new Uint16Array(buf);
 
     for (let i = 0, strLen = str.length; i < strLen; i += 1) {
@@ -344,11 +348,8 @@ export default function (settings) {
 
   function arrayToBase64(ab) {
     const dView = new Uint8Array(ab); // Get a byte view
-
     const arr = Array.prototype.slice.call(dView); // Create a normal array
-
-    const arr1 = arr.map(item => String.fromCharCode(item) // Convert
-    );
+    const arr1 = arr.map(item => String.fromCharCode(item));
     return window.btoa(arr1.join('')); // Form a string
   }
 
@@ -376,7 +377,9 @@ export default function (settings) {
         iv
       }, key, str2ab(`12345678${data}`)); // add 8 chr due to droppinginitial vector
     }).then(encrypted => arrayToBase64(encrypted));
-  } // function decryptString(localToken, data, ivAsString) {
+  } 
+
+  // function decryptString(localToken, data, ivAsString) {
   // return keyFromLocalToken(localToken).then((key) => {
   // const iv = new Uint8Array(ivAsString.split(','));
   //
@@ -538,7 +541,7 @@ export default function (settings) {
         sync: true
       }, args)));
     }),
-    _read: args => {
+    _read: async args => {
       if (args.populate) {
         const allThePromises = [];
         const allThePromisesKeys = [];
@@ -557,7 +560,7 @@ export default function (settings) {
         });
 
         if (settings.resolve) {
-          return Promise.all(allThePromises).then(values => JSON.parse(JSON.stringify(args.populate), (_, value) => {
+          return await Promise.all(allThePromises).then(values => JSON.parse(JSON.stringify(args.populate), (_, value) => {
             if (typeof value === 'string' && /^[_a-z0-9\-.]*$/i.test(value)) {
               return values[allThePromisesKeys.indexOf(value)];
             }
