@@ -111,16 +111,13 @@ export default function (settings) {
           // gets the data if not loaded 
           if (sync && data === undefined) {
             let gunData;
-
             if (queryAsArray[0] == 'users' && queryAsArray.length > 1) {
               const username = queryAsArray[1];
               const user = gun.get('users').get(username);
-
               if (params === 'check' && queryAsArray.length === 2) {
                 return getDataFromServer(`accounts/checkUsernameExists/${username}`).then(serverRes => {
                   const theData = JSON.parse(serverRes.data);
                   resolve(theData);
-
                   if (theData) {
                     user.set({});
                   }
@@ -129,14 +126,12 @@ export default function (settings) {
                 return await getDataFromServer(`/users/?username=${queryAsArray[1]}`).then(serverRes => {
                   const serverData = JSON.parse(serverRes, (key, value) => {
                     let theValue = value;
-
                     if (Array.isArray(value)) {
                       theValue = value.reduce((acc, curValue, curIndex) => {
                         acc[curIndex] = curValue;
                         return acc;
                       }, {});
                     }
-
                     return theValue;
                   });
                   Object.keys(serverData.data).forEach(key => {
@@ -163,6 +158,14 @@ export default function (settings) {
                 share.put(arraysToObject(serverRes.data.shares[0]))
                 return gun.get('metaShares').put({"attachmentBaseUrl": serverRes.data.attachmentBaseUrl})
               })
+            } else if (idx >= 1 && queryAsArray[idx-1] === "shares") {
+              const share = gun.get('shares').get(queryAsArray[idx])
+              return await getDataFromServer(`shares?ids=${queryAsArray[idx]}`).then(serverRes => {
+                share.put(arraysToObject(serverRes.data.shares[0]))
+                return gun.get('metaShares').put({"attachmentBaseUrl": serverRes.data.attachmentBaseUrl})
+              })
+            } else {
+              console.log(`Not implemented Endpoint: ${queryRun}`)
             }
           }
         }
