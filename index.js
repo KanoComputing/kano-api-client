@@ -1,4 +1,7 @@
+import { Client } from './lib/client.js';
 import { AccountClient } from './lib/account.js';
+import { UserClient } from './lib/user.js';
+import { ShareClient } from './lib/share.js';
 
-export { AccountClient };
-export default { AccountClient };
+export { Client, AccountClient, UserClient, ShareClient };
+export default { Client, AccountClient, UserClient, ShareClient };
