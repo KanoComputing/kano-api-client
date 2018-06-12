@@ -45,6 +45,9 @@ Implemented clients:
     - login(username, password)
     - register({ username, password, email, marketing })
     - checkUsernameAvailability(username)
+ - `UserClient`:
+    - getById(id)
+    - getByUsername(username)
 
 More to come
 
