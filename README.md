@@ -22,7 +22,7 @@ const account = new AccountClient({
 account.login('me', 'my-password').then(session => console.log(session));
 ```
 
-You can share options across clients by gicing another client to the contructor:
+You can share options across clients by giving another client to the contructor:
 
 ```js
 import { AccountClient, UserClient } from '@kano/api-client/index.js';
@@ -98,9 +98,9 @@ or
 <!-- will expose `window.Kano.apiClient` -->
 ```
 
-Assign the API to a variable including the settings. The settings options are our worldUrl,resolve and log
+Assign the API to a variable including the settings. The settings options are our defaultUrl,resolve and log
 
-worldUrl: The URL of the API you are querying.
+defaultUrl: The URL of the API you are querying.
 
 resolve: If result is true all populated Returns will be their values otherwise they will be returned as individual promises.
 
