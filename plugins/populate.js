@@ -25,7 +25,7 @@ export function populatePlugin(formats) {
 export default populatePlugin;
 
 
-
+/*
 const userFormat = {
     id: 'id',
     name: 'username',
@@ -42,3 +42,4 @@ const formats = {
 };
 
 client.addPlugin(populatePlugin(formats));
+*/
