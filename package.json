@@ -7,7 +7,6 @@
     "test": "test"
   },
   "scripts": {
-    "test": "polymer test --npm",
     "serve": "polymer serve --npm"
   },
   "author": "",
