@@ -1,8 +1,6 @@
 import Gamification from '../node_modules/gamification-engine/dist/gamification-engine.es6.js';
 import GamificationClient from '../lib/gamification.js';
 
-// console.log(KanoSharedStorageClient, Gamification);
-
 class LocalStorageClient {
     constructor(userId) {
         this.user = userId;
@@ -31,7 +29,6 @@ class LocalStorageClient {
         return queue;
     }
     emptyQueue() {
-        console.log('EMPTY QUEUE');
         return localStorage.setItem(this.queueKey, JSON.stringify([]));
     }
     queue(eventOrArray) {
@@ -71,7 +68,8 @@ export class OfflineGamificationPlugin {
     onInstall(client) {
         if (!this.parent) {
             this.parent = client;
-            this.remoteClient = new GamificationClient(this.parent.options);
+            this.remoteClient = new GamificationClient(this.parent);
+            this.remoteClient.plugins = this.remoteClient.plugins.filter(p => !(p instanceof OfflineGamificationPlugin));
         }
     }
 
@@ -168,10 +166,12 @@ export class OfflineGamificationPlugin {
         });
     }
 
-    onError(endpoint) {
+    onError(endpoint, response) {
         if (['getProgress', 'getPartialProgress', 'trigger'].indexOf(endpoint.name) === -1) {
             return Promise.resolve(endpoint);
         }
+
+        // Future TODO posisbly print/log error here?
 
         let events;
 

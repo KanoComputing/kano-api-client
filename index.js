@@ -5,5 +5,26 @@ import { ShareClient } from './lib/share.js';
 import { CommentClient } from './lib/comment.js';
 import { GamificationClient } from './lib/gamification.js';
 
-export { Client, AccountClient, UserClient, ShareClient, CommentClient, GamificationClient };
-export default { Client, AccountClient, UserClient, ShareClient, CommentClient, GamificationClient };
+import { OfflineGamificationPlugin } from './plugins/offline-gamification.js';
+
+export {
+    Client,
+    AccountClient,
+    UserClient,
+    ShareClient,
+    CommentClient,
+    GamificationClient,
+
+    OfflineGamificationPlugin,
+};
+
+export default {
+    Client,
+    AccountClient,
+    UserClient,
+    ShareClient,
+    CommentClient,
+    GamificationClient,
+
+    OfflineGamificationPlugin,
+};
