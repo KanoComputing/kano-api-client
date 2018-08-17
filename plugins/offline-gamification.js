@@ -94,7 +94,13 @@ export class OfflineGamificationPlugin {
             case 'trigger':
                 progress = {};
 
-                Object.keys(data).forEach((name) => {
+                const ruleNamesChanged = Object.keys(data);
+
+                if (ruleNamesChanged.length <= 0) {
+                    return Promise.resolve(data);
+                }
+
+                ruleNamesChanged.forEach((name) => {
                     progress[name] = data[name].progress;
                 });
 
