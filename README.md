@@ -88,3 +88,10 @@ account.addPlugin({
     },
 });
 ```
+
+## Publishing
+
+This is an npm package and published publicly on npm. To do this, change the version number in the package.json (eg: 2.0.3 => 2.0.4) and run the following command from the root of the repo:
+npm publish --access public
+
+It will require you to have an account with npm and to be logged into npm in your terminal.
