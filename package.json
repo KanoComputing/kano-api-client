@@ -1,6 +1,6 @@
 {
   "name": "@kano/api-client",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "intercept calls between the server and the client try to minimise them",
   "main": "api-client.js",
   "directories": {
@@ -17,11 +17,11 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "eslint": "^4.19.1",
+    "eslint-config-kano": "KanoComputing/eslint-config-kano#master",
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-import": "^2.11.0",
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.7.0",
-    "eslint-plugin-standard": "^3.1.0",
-    "eslint-config-kano": "KanoComputing/eslint-config-kano#master"
+    "eslint-plugin-standard": "^3.1.0"
   }
 }
