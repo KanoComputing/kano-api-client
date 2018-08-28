@@ -1,4 +1,4 @@
-import Gamification from '../node_modules/gamification-engine/dist/gamification-engine.es6.js';
+import Gamification from 'gamification-engine/dist/gamification-engine.es6.js';
 import GamificationClient from '../lib/gamification.js';
 
 class LocalStorageClient {
