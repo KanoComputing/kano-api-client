@@ -4,6 +4,7 @@ import { UserClient } from './lib/user.js';
 import { ShareClient } from './lib/share.js';
 import { CommentClient } from './lib/comment.js';
 import { GamificationClient } from './lib/gamification.js';
+import { PingClient } from './lib/ping.js';
 
 import { OfflineGamificationPlugin } from './plugins/offline-gamification.js';
 
@@ -14,6 +15,7 @@ export {
     ShareClient,
     CommentClient,
     GamificationClient,
+    PingClient,
 
     OfflineGamificationPlugin,
 };
@@ -25,6 +27,7 @@ export default {
     ShareClient,
     CommentClient,
     GamificationClient,
+    PingClient,
 
     OfflineGamificationPlugin,
 };
