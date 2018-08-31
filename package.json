@@ -1,6 +1,6 @@
 {
   "name": "@kano/api-client",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "intercept calls between the server and the client try to minimise them",
   "main": "api-client.js",
   "directories": {
