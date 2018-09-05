@@ -6,6 +6,8 @@ import { CommentClient } from './lib/comment.js';
 import { GamificationClient } from './lib/gamification.js';
 import { PingClient } from './lib/ping.js';
 
+import { ResponseCache } from './lib/response-cache.js';
+
 import { OfflineGamificationPlugin } from './plugins/offline-gamification.js';
 
 export {
@@ -18,6 +20,8 @@ export {
     PingClient,
 
     OfflineGamificationPlugin,
+
+    ResponseCache,
 };
 
 export default {
@@ -30,4 +34,6 @@ export default {
     PingClient,
 
     OfflineGamificationPlugin,
+
+    ResponseCache,
 };
