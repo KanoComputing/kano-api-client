@@ -73,7 +73,7 @@ export class OfflineGamificationPlugin {
         }
     }
 
-    afterData(endpoint, data) {
+    afterDataProcessed(endpoint, data) {
         if (['getProgress', 'getPartialProgress', 'trigger'].indexOf(endpoint.name) === -1) {
             return Promise.resolve(data);
         }

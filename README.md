@@ -78,9 +78,28 @@ account.addPlugin({
         // Alwasy return a Promise
         return Promise.resolve(endpoint);
     },
-    // Will be called after the data was received bu before it is resolved to the client user
+    onError(endpoint, error) {
+        if (error === 'fetch failed') {
+            /* Silently spoof cached response */
+            endpoint.response = ResponseCache.lookup(endponint),
+            return Promise.resolve(endpoint);
+        } else {
+            /* Log and rethrow */
+            console.log(error);
+            throw error;
+        }
+    },
+    // Will return raw data as received from the API before processing
+    // Use this to cache raw responses
+    afterDataReceived(endpoint, data) {
+        if (name === 'login') {
+            console.log(data);
+        }
+        return Promise.resolve(data);
+    },
+    // Will be called after the data was received but before it is resolved to the client user
     // Use this to reformat the data, or for logging
-    afterData(name, data) {
+    afterDataProcessed(endpoint, data) {
         if (name === 'login') {
             console.log(data);
         }
