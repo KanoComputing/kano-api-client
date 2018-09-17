@@ -489,9 +489,9 @@ functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
 
-"gamification-engine@ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^1.9.3":
+"gamification-engine@ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^1.9.4":
   version "1.9.3"
-  resolved "ssh://git@github.com:KanoComputing/gamification-engine.git#f7fd68ef92a9fb0704407eab9d02fe1b3f33e9ce"
+  resolved "ssh://git@github.com:KanoComputing/gamification-engine.git#807c2dceb58c44cf3cfc2fc6b96abe5b958dc6b1"
   dependencies:
     clone "^2.1.0"
     commander "^2.9.0"
