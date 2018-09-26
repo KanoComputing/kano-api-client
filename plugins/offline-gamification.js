@@ -8,7 +8,7 @@ class LocalStorageClient {
         this.queueKey = `gamification-event-queue-${this.user}`;
     }
     getLocalGamificationState() {
-        return Promise.resolve(JSON.parse(localStorage.getItem(this.state)) || []);
+        return Promise.resolve(JSON.parse(localStorage.getItem(this.stateKey)) || []);
     }
     setLocalGamificationState(state) {
         return Promise.resolve(localStorage.setItem(this.stateKey, JSON.stringify(state)));
