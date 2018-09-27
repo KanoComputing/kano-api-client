@@ -1,6 +1,6 @@
 {
   "name": "@kano/api-client",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "Intercept calls between the server and the client try to minimise them",
   "main": "api-client.js",
   "directories": {
@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "gamification-engine": "ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^1.9.5"
+    "gamification-engine": "ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^1.9.6"
   },
   "devDependencies": {
     "chai": "^4.1.2",
