@@ -616,9 +616,9 @@ functional-red-black-tree@^1.0.1:
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
-"gamification-engine@ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^1.9.6":
-  version "1.9.6"
-  resolved "ssh://git@github.com:KanoComputing/gamification-engine.git#4eed5e678c9d45031db7b1078c753d2872d5dced"
+"gamification-engine@ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^1.10.0":
+  version "1.10.0"
+  resolved "ssh://git@github.com:KanoComputing/gamification-engine.git#f637f7193a0541765337e5b7559d602d35713ca3"
   dependencies:
     clone "^2.1.0"
     commander "^2.9.0"
@@ -1199,9 +1199,9 @@ slice-ansi@1.0.0:
     is-fullwidth-code-point "^2.0.0"
 
 spdx-correct@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/spdx-correct/-/spdx-correct-3.0.0.tgz#05a5b4d7153a195bc92c3c425b69f3b2a9524c82"
-  integrity sha512-N19o9z5cEyc8yQQPukRCZ9EUmb4HUpnrmaL/fxS2pBo2jbfcFRVuFZ/oFC+vZz0MNNk0h80iMn5/S6qGZOL5+g==
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/spdx-correct/-/spdx-correct-3.0.1.tgz#434434ff9d1726b4d9f4219d1004813d80639e30"
+  integrity sha512-hxSPZbRZvSDuOvADntOElzJpenIR7wXJkuoUcUtS0erbgt2fgeaoPIYretfKpslMhfFDY4k0MZ2F5CUzhBsSvQ==
   dependencies:
     spdx-expression-parse "^3.0.0"
     spdx-license-ids "^3.0.0"
