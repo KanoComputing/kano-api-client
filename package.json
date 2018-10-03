@@ -7,6 +7,8 @@
     "test": "test"
   },
   "scripts": {
+    "checkstyle": "eslint ./index.js ./lib ./test",
+    "checkstyle-ci": "eslint ./index.js ./lib ./test -f checkstyle -o eslint.xml",
     "serve": "polymer serve --npm"
   },
   "author": "",
@@ -15,13 +17,9 @@
     "gamification-engine": "ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^1.10.0"
   },
   "devDependencies": {
+    "@kano/eslint-config": "^1.0.0",
     "chai": "^4.1.2",
     "eslint": "^4.19.1",
-    "eslint-config-kano": "KanoComputing/eslint-config-kano#master",
-    "eslint-config-standard": "^11.0.0",
-    "eslint-plugin-import": "^2.11.0",
-    "eslint-plugin-node": "^6.0.1",
-    "eslint-plugin-promise": "^3.7.0",
-    "eslint-plugin-standard": "^3.1.0"
+    "eslint-plugin-import": "^2.14.0"
   }
 }
