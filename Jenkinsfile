@@ -14,12 +14,7 @@ pipeline {
     stages {
         stage('checkout') {
             steps {
-                checkout([ $class: 'GitSCM', 
-                    branches: [[name: '*/master']],
-                    extensions: [[
-                        $class: 'MessageExclusion', excludedMessage: '.*skip-?ci.*'
-                    ]],
-                ])
+                checkout scm
             }
         }
         stage('tools') {
