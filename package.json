@@ -8,7 +8,7 @@
   },
   "scripts": {
     "checkstyle": "eslint ./index.js ./lib ./test",
-    "checkstyle-ci": "eslint ./index.js ./lib ./test -f checkstyle -o eslint.xml",
+    "checkstyle-ci": "yarn checkstyle -f checkstyle -o eslint.xml",
     "serve": "polymer serve --npm"
   },
   "author": "",
