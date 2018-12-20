@@ -592,9 +592,9 @@ functional-red-black-tree@^1.0.1:
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
-"gamification-engine@ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^2.1.0":
-  version "2.1.0"
-  resolved "ssh://git@github.com:KanoComputing/gamification-engine.git#b164c09737d5b25d284a2a2474c6429243382d4e"
+"gamification-engine@ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^2.1.1":
+  version "2.1.1"
+  resolved "ssh://git@github.com:KanoComputing/gamification-engine.git#275f780c099b442665f98854af495ce2be8b5a35"
   dependencies:
     "@kano/eslint-config" "^1.0.0"
     clone "^2.1.0"
