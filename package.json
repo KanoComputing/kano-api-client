@@ -13,7 +13,7 @@
   "author": "Kano",
   "license": "ISC",
   "dependencies": {
-    "gamification-engine": "ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^2.2.1"
+    "gamification-engine": "ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^2.2.3"
   },
   "devDependencies": {
     "@kano/eslint-config": "^1.0.0",
