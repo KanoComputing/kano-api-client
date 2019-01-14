@@ -1,20 +1,19 @@
 {
   "name": "@kano/api-client",
-  "version": "3.0.11",
+  "version": "3.3.1",
   "description": "Intercept calls between the server and the client try to minimise them",
-  "main": "api-client.js",
+  "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "checkstyle": "eslint ./index.js ./lib ./test",
-    "checkstyle-ci": "yarn checkstyle -f checkstyle -o eslint.xml",
-    "serve": "polymer serve --npm"
+    "checkstyle-ci": "yarn checkstyle -f checkstyle -o eslint.xml"
   },
-  "author": "",
+  "author": "Kano",
   "license": "ISC",
   "dependencies": {
-    "gamification-engine": "ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^1.10.0"
+    "gamification-engine": "ssh://git@github.com:KanoComputing/gamification-engine.git#semver:^2.2.1"
   },
   "devDependencies": {
     "@kano/eslint-config": "^1.0.0",
