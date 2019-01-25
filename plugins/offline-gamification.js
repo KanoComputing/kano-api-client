@@ -1,5 +1,5 @@
-import Gamification from 'gamification-engine/dist/gamification-engine.es6.js';
-import GamificationClient from '../lib/gamification.js';
+import Gamification from '@kano/gamification-engine/dist/gamification-engine.es6.js';
+import { GamificationClient } from '../lib/gamification.js';
 
 class LocalStorageClient {
     constructor(userId) {
