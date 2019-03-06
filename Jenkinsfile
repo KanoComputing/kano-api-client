@@ -32,7 +32,7 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'npm-read-only', variable: 'NPM_TOKEN')]) {
                         sh "echo \"//registry.npmjs.org/:_authToken=${NPM_TOKEN}\" > .npmrc"
-                        docker.image('node:8-alpine').inside {
+                        docker.image('node:10-alpine').inside {
                             sh "yarn --production=false"
                         }
                     }
@@ -42,7 +42,7 @@ pipeline {
         stage('checkstyle') {
             steps {
                 script {
-                    docker.image('node:8-alpine').inside {
+                    docker.image('node:10-alpine').inside {
                         sh "yarn checkstyle-ci || exit 0"
                     }
                 }
