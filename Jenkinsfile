@@ -31,11 +31,9 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'npm-read-only', variable: 'NPM_TOKEN')]) {
-                        sh "echo \"//registry.npmjs.org/:_authToken=${NPM_TOKEN}\" > ~/.npmrc"
-                        sshagent(['read-only-github']) {
-                            docker.image('node:8-alpine').inside {
-                                sh "yarn --production=false"
-                            }
+                        env.npm_config_registry = "//registry.npmjs.org/:_authToken=${NPM_TOKEN}"
+                        docker.image('node:8-alpine').inside {
+                            sh "yarn --production=false"
                         }
                     }
                 }
