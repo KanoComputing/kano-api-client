@@ -4,11 +4,21 @@
 
 pipeline {
     agent {
-        label 'ubuntu_18.04'
+        label 'ubuntu_18.04_with_docker'
     }
     post {
+        always {
+            step([$class: 'CheckStylePublisher', pattern: 'eslint.xml'])
+        }
         regression {
-            notify_culprits currentBuild.result
+            script {
+                email.notifyCulprits()
+            }
+        }
+        fixed {
+            script {
+                email.notifyCulprits()
+            }
         }
     }
     stages {
@@ -17,22 +27,12 @@ pipeline {
                 checkout scm
             }
         }
-        stage('tools') {
-            steps {
-                script {
-                    def NODE_PATH = tool 'Node 8.11.2'
-                    env.PATH = "${env.PATH}:${NODE_PATH}/bin"
-                    def YARN_PATH = tool 'yarn'
-                    env.PATH = "${env.PATH}:${YARN_PATH}/bin"
-                }
-            }
-        }
         stage('install dependencies') {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'npm-read-only', variable: 'NPM_TOKEN')]) {
-                        sh "echo \"//registry.npmjs.org/:_authToken=${NPM_TOKEN}\" > ~/.npmrc"
-                        sshagent(['read-only-github']) {
+                        sh "echo \"//registry.npmjs.org/:_authToken=${NPM_TOKEN}\" > .npmrc"
+                        docker.image('node:10-alpine').inside {
                             sh "yarn --production=false"
                         }
                     }
@@ -42,8 +42,9 @@ pipeline {
         stage('checkstyle') {
             steps {
                 script {
-                    sh "yarn checkstyle-ci || exit 0"
-                    step([$class: 'CheckStylePublisher', pattern: 'eslint.xml'])
+                    docker.image('node:10-alpine').inside {
+                        sh "yarn checkstyle-ci || exit 0"
+                    }
                 }
             }
         }
