@@ -1,5 +1,7 @@
 docs
 test
-.eslintrc
+.eslintrc.js
 index.html
 wct.conf.json
+Jenkinsfile
+yarn.lock
