@@ -8,7 +8,7 @@ import { PingClient } from './lib/ping.js';
 
 import { ResponseCache } from './lib/response-cache.js';
 
-import { OfflineGamificationPlugin } from './plugins/offline-gamification.js';
+import { GamificationFallbackPlugin } from './plugins/gamification-fallback.js';
 
 export {
     Client,
