@@ -1,6 +1,6 @@
 {
   "name": "@kano/api-client",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Intercept calls between the server and the client try to minimise them",
   "main": "index.js",
   "directories": {
@@ -13,7 +13,7 @@
   "author": "Kano",
   "license": "ISC",
   "dependencies": {
-    "@kano/gamification-engine": "^2.5.1"
+    "@kano/gamification-engine": "^2.5.2"
   },
   "devDependencies": {
     "@kano/eslint-config": "^1.0.0",

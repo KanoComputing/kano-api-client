@@ -28,10 +28,10 @@
     eslint-plugin-html "^4.0.2"
     eslint-plugin-import "^2.15.0"
 
-"@kano/gamification-engine@^2.5.1":
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/@kano/gamification-engine/-/gamification-engine-2.5.1.tgz#b4fba26a10d76507302fbb2c227591b86dd9d770"
-  integrity sha512-SkGxkz0vtzcBQQbCY56jHodiry7s5hY6QM9pQVQPfgDoyB/LO9N2wGBIh82TZFF+LNYDBrClsRr3tDcKm6uurQ==
+"@kano/gamification-engine@^2.5.2":
+  version "2.5.2"
+  resolved "https://registry.yarnpkg.com/@kano/gamification-engine/-/gamification-engine-2.5.2.tgz#f755c03d9712ef9790ab528164993f4947aa7ab3"
+  integrity sha512-VjnEQSnEidmm9t6LRLAWwUx9fDZItxC7u+U+I3YMc/zI0yzTe1pdjfUsjUHxMnQbqtyvXpFW0TdZm1XFx+Bp6w==
   dependencies:
     "@kano/eslint-config" "^1.0.0"
     clone "^2.1.0"
