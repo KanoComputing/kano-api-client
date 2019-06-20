@@ -51,7 +51,7 @@ class LocalStorageClient {
     }
 }
 
-export class OfflineGamificationPlugin {
+export class GamificationFallbackPlugin {
     constructor(userId, anonId) {
         this.userId = userId;
         this.anonId = anonId;
