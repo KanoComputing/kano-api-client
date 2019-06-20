@@ -7,12 +7,15 @@ class LocalStorageClient {
         this.stateKey = `gamification-state-${this.user}`;
         this.queueKey = `gamification-event-queue-${this.user}`;
     }
+
     getLocalGamificationState() {
         return Promise.resolve(JSON.parse(localStorage.getItem(this.stateKey)) || []);
     }
+
     setLocalGamificationState(state) {
         return Promise.resolve(localStorage.setItem(this.stateKey, JSON.stringify(state)));
     }
+
     _getOrInitialiseQueue() {
         let queue;
 
@@ -28,9 +31,11 @@ class LocalStorageClient {
 
         return queue;
     }
+
     emptyQueue() {
         return localStorage.setItem(this.queueKey, JSON.stringify([]));
     }
+
     queue(eventOrArray) {
         let queue = this._getOrInitialiseQueue();
         if (Array.isArray(eventOrArray)) {
@@ -40,16 +45,23 @@ class LocalStorageClient {
         }
         return localStorage.setItem(this.queueKey, JSON.stringify(queue));
     }
+
     getEventQueue() {
         return this._getOrInitialiseQueue();
     }
 }
 
 export class OfflineGamificationPlugin {
-    constructor(userId) {
+    constructor(userId, anonId) {
         this.userId = userId;
-        this.client = new LocalStorageClient(userId);
-        this.storage = new Gamification.BrowserStorage({ client: this.client });
+        this.anonId = anonId;
+        this.storageClient = new LocalStorageClient(userId);
+        this.storage = new Gamification.BrowserStorage({ client: this.storageClient });
+
+        /* Initialise anon storage in case the user made any progress before logging in. */
+        if (userId) {
+            this.anonStorageClient = new LocalStorageClient(anonId);
+        }
 
         this.engine = new Gamification.Engine(Gamification.RULES, this.storage);
 
@@ -138,18 +150,31 @@ export class OfflineGamificationPlugin {
     }
 
     beforeFetch(endpoint) {
-        const queue = this.client.getEventQueue();
+        let queue = this.storageClient.getEventQueue();
 
-        /* Skip uploading queue when there aren't any events or there's no internet */
-        if (['getProgress', 'getPartialProgress', 'trigger'].indexOf(endpoint.name) === -1 ||
-            queue.length === 0 ||
-            !navigator.onLine) {
+        /* Merge anonymous data into the current event queue */
+        if (this.anonStorageClient) {
+            const anonQueue = this.anonStorageClient.getEventQueue();
+            queue = queue.concat(anonQueue);
+        }
+
+        /* Skip uploading queue when there aren't any events, there's no internet
+           or the user is anonymous */
+        if (['getProgress', 'getPartialProgress', 'trigger'].indexOf(endpoint.name) === -1
+            || queue.length === 0
+            || !navigator.onLine
+            || this.userId === this.anonId) {
 
             return Promise.resolve(endpoint);
         }
 
         return this._dispatchEventsAndSync(queue).then((progress) => {
-            this.client.emptyQueue();
+            this.storageClient.emptyQueue();
+
+            /* Discard anonymous data once synced */
+            if (this.anonStorageClient) {
+                this.anonStorageClient.emptyQueue();
+            }
 
             switch (endpoint.name) {
             case 'getProgress':
@@ -198,7 +223,7 @@ export class OfflineGamificationPlugin {
             if (!Array.isArray(events)) {
                 events = [events];
             }
-            this.client.queue(events);
+            this.storageClient.queue(events);
 
             /* Reset state changes log */
             this.engine.rules.forEach((rule) => {
@@ -212,8 +237,13 @@ export class OfflineGamificationPlugin {
                 this.engine.save();
                 return endpoint;
             });
+        default:
+            /* Don't handle the error in any special way. */
+            break;
         }
 
         return Promise.resolve(endpoint);
     }
 }
+
+export default OfflineGamificationPlugin;
