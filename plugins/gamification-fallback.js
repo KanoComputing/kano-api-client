@@ -81,7 +81,7 @@ export class GamificationFallbackPlugin {
         if (!this.parent) {
             this.parent = client;
             this.remoteClient = new GamificationClient(this.parent);
-            this.remoteClient.plugins = this.remoteClient.plugins.filter(p => !(p instanceof OfflineGamificationPlugin));
+            this.remoteClient.plugins = this.remoteClient.plugins.filter(p => !(p instanceof GamificationFallbackPlugin));
         }
     }
 
@@ -246,4 +246,4 @@ export class GamificationFallbackPlugin {
     }
 }
 
-export default OfflineGamificationPlugin;
+export default GamificationFallbackPlugin;

@@ -19,7 +19,7 @@ export {
     GamificationClient,
     PingClient,
 
-    OfflineGamificationPlugin,
+    GamificationFallbackPlugin,
 
     ResponseCache,
 };
@@ -33,7 +33,7 @@ export default {
     GamificationClient,
     PingClient,
 
-    OfflineGamificationPlugin,
+    GamificationFallbackPlugin,
 
     ResponseCache,
 };
