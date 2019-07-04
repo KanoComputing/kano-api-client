@@ -25,7 +25,7 @@ class LocalStorageClient {
             if (!Array.isArray(queue)) {
                 queue = [];
             }
-        } catch(error) {
+        } catch (error) {
             queue = [];
         }
 
@@ -91,6 +91,7 @@ export class GamificationFallbackPlugin {
         }
 
         let progress;
+        let ruleNamesChanged;
 
         /* Only override data when response wasn't spoofed. */
         if (!endpoint.response) {
@@ -98,15 +99,13 @@ export class GamificationFallbackPlugin {
             case 'getProgress':
             case 'getPartialProgress':
                 if (this.userId === endpoint.params.userId) {
-                    return this.engine.overrideStateFromProgress(data).then(() => {
-                        return data;
-                    });
+                    return this.engine.overrideStateFromProgress(data).then(() => data);
                 }
                 break;
             case 'trigger':
                 progress = {};
 
-                const ruleNamesChanged = Object.keys(data);
+                ruleNamesChanged = Object.keys(data);
 
                 if (ruleNamesChanged.length <= 0) {
                     return Promise.resolve(data);
@@ -116,9 +115,9 @@ export class GamificationFallbackPlugin {
                     progress[name] = data[name].progress;
                 });
 
-                return this.engine.overrideStateFromProgress(progress).then(() => {
-                    return data;
-                });
+                return this.engine.overrideStateFromProgress(progress).then(() => data);
+            default:
+                break;
             }
         }
 
@@ -127,83 +126,13 @@ export class GamificationFallbackPlugin {
 
     _dispatchEventsAndSync(queue) {
         let cachedData;
-        return this.remoteClient.trigger(queue).then(() => {
-            return this.remoteClient.getProgress(this.userId);
-        }).then((data) => {
+        return this.remoteClient.trigger(queue).then(() => this.remoteClient.getProgress(this.userId)).then((data) => {
             cachedData = data;
             return this.engine.overrideStateFromProgress(data);
-        }).then(() => {
-            return cachedData;
-        });
+        }).then(() => cachedData);
     }
 
-    _filterProgress(progress, ruleIds) {
-        const response = {};
-
-        Object.keys(progress)
-            .filter(ruleName => ruleIds.indexOf(ruleName) >= 0)
-            .forEach((name) => {
-                response[name] = progress[name];
-            });
-
-        return response;
-    }
-
-    beforeFetch(endpoint) {
-        let queue = this.storageClient.getEventQueue();
-
-        /* Merge anonymous data into the current event queue */
-        if (this.anonStorageClient) {
-            const anonQueue = this.anonStorageClient.getEventQueue();
-            queue = queue.concat(anonQueue);
-        }
-
-        /* Skip uploading queue when there aren't any events, there's no internet
-           or the user is anonymous */
-        if (['getProgress', 'getPartialProgress', 'trigger'].indexOf(endpoint.name) === -1
-            || queue.length === 0
-            || !navigator.onLine
-            || this.userId === this.anonId) {
-
-            return Promise.resolve(endpoint);
-        }
-
-        return this._dispatchEventsAndSync(queue).then((progress) => {
-            this.storageClient.emptyQueue();
-
-            /* Discard anonymous data once synced */
-            if (this.anonStorageClient) {
-                this.anonStorageClient.emptyQueue();
-            }
-
-            switch (endpoint.name) {
-            case 'getProgress':
-                endpoint.response = {
-                    data: progress
-                };
-                return Promise.resolve(endpoint);
-            case 'getPartialProgress':
-                endpoint.response = {
-                    data: this._filterProgress(progress.progress, endpoint.params.ruleIds),
-                };
-                return Promise.resolve(endpoint);
-            case 'trigger':
-            default:
-                return Promise.resolve(endpoint);
-            }
-        }).catch(() => {
-            /* In case of error, carry on with the normal request. */
-            return Promise.resolve(endpoint);
-        });
-    }
-
-    onError(endpoint, response) {
-        if (['getProgress', 'getPartialProgress', 'trigger'].indexOf(endpoint.name) === -1) {
-            return Promise.resolve(endpoint);
-        }
-
-        // Future TODO posisbly print/log error here?
-
+    _processRequestLocally(endpoint) {
         let events;
 
         switch (endpoint.name) {
@@ -238,11 +167,79 @@ export class GamificationFallbackPlugin {
                 return endpoint;
             });
         default:
-            /* Don't handle the error in any special way. */
-            break;
+            /* Don't handle in any special way. */
+            return Promise.resolve(endpoint);
+        }
+    }
+
+    _filterProgress(progress, ruleIds) {
+        const response = {};
+
+        Object.keys(progress)
+            .filter(ruleName => ruleIds.indexOf(ruleName) >= 0)
+            .forEach((name) => {
+                response[name] = progress[name];
+            });
+
+        return response;
+    }
+
+    beforeFetch(endpoint) {
+        let queue = this.storageClient.getEventQueue();
+
+        /* Handle the request locally for anonymous users. */
+        if (this.userId === this.anonId) {
+            return this._processRequestLocally(endpoint);
         }
 
-        return Promise.resolve(endpoint);
+        /* Merge anonymous data into the current event queue */
+        if (this.anonStorageClient) {
+            const anonQueue = this.anonStorageClient.getEventQueue();
+            queue = queue.concat(anonQueue);
+        }
+
+        /* Skip uploading queue when there aren't any events, there's no internet
+           or the user is anonymous */
+        if (['getProgress', 'getPartialProgress', 'trigger'].indexOf(endpoint.name) === -1
+            || queue.length === 0
+            || !navigator.onLine) {
+            return Promise.resolve(endpoint);
+        }
+
+        return this._dispatchEventsAndSync(queue).then((progress) => {
+            this.storageClient.emptyQueue();
+
+            /* Discard anonymous data once synced */
+            if (this.anonStorageClient) {
+                this.anonStorageClient.emptyQueue();
+            }
+
+            switch (endpoint.name) {
+            case 'getProgress':
+                endpoint.response = {
+                    data: progress,
+                };
+                return Promise.resolve(endpoint);
+            case 'getPartialProgress':
+                endpoint.response = {
+                    data: this._filterProgress(progress.progress, endpoint.params.ruleIds),
+                };
+                return Promise.resolve(endpoint);
+            case 'trigger':
+            default:
+                return Promise.resolve(endpoint);
+            }
+        }).catch(() => Promise.resolve(endpoint)); /* In case of error, carry on with the normal request. */
+    }
+
+    onError(endpoint, response) {
+        if (['getProgress', 'getPartialProgress', 'trigger'].indexOf(endpoint.name) === -1) {
+            return Promise.resolve(endpoint);
+        }
+
+        // Future TODO posisbly print/log error here?
+
+        return this._processRequestLocally(endpoint);
     }
 }
 
