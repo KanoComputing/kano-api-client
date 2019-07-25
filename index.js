@@ -2,6 +2,7 @@ import { Client } from './lib/client.js';
 import { AccountClient } from './lib/account.js';
 import { UserClient } from './lib/user.js';
 import { ShareClient } from './lib/share.js';
+import { TaskClient } from './lib/task.js';
 import { CommentClient } from './lib/comment.js';
 import { GamificationClient } from './lib/gamification.js';
 import { PingClient } from './lib/ping.js';
@@ -23,6 +24,7 @@ export {
     AccountClient,
     UserClient,
     ShareClient,
+    TaskClient,
     CommentClient,
     GamificationClient,
     PingClient,
@@ -35,6 +37,7 @@ export default {
     AccountClient,
     UserClient,
     ShareClient,
+    TaskClient,
     CommentClient,
     GamificationClient,
     PingClient,
