@@ -8,7 +8,15 @@ import { PingClient } from './lib/ping.js';
 
 import { ResponseCache } from './lib/response-cache.js';
 
-import { GamificationFallbackPlugin } from './plugins/gamification-fallback.js';
+// REMOVED: due to GamificationFallbackPlugin importing the whole gamification bundle
+// import { GamificationFallbackPlugin } from './plugins/gamification-fallback.js';
+
+// IDEA: create fake instance to throw error anywhere we are importing GamificationFallbackPlugin
+class GamificationFallbackPlugin {
+    constructor() {
+        throw new Error('Import GamificationFallbackPlugin from root file "./plugins/gamification-fallback.js"');
+    }
+}
 
 export {
     Client,
@@ -18,9 +26,7 @@ export {
     CommentClient,
     GamificationClient,
     PingClient,
-
     GamificationFallbackPlugin,
-
     ResponseCache,
 };
 
@@ -32,8 +38,6 @@ export default {
     CommentClient,
     GamificationClient,
     PingClient,
-
     GamificationFallbackPlugin,
-
     ResponseCache,
 };
