@@ -1,4 +1,3 @@
-import Gamification from '@kano/gamification-engine/dist/gamification-engine.es6.js';
 import { GamificationClient } from '../lib/gamification.js';
 
 class LocalStorageClient {
@@ -52,18 +51,18 @@ class LocalStorageClient {
 }
 
 export class GamificationFallbackPlugin {
-    constructor(userId, anonId) {
+    constructor(userId, anonId, gamification) {
         this.userId = userId;
         this.anonId = anonId;
         this.storageClient = new LocalStorageClient(userId);
-        this.storage = new Gamification.BrowserStorage({ client: this.storageClient });
+        this.storage = new gamification.BrowserStorage({ client: this.storageClient });
 
         /* Initialise anon storage in case the user made any progress before logging in. */
         if (userId) {
             this.anonStorageClient = new LocalStorageClient(anonId);
         }
 
-        this.engine = new Gamification.Engine(Gamification.RULES, this.storage);
+        this.engine = new gamification.Engine(gamification.RULES, this.storage);
 
         this.parent = null;
     }

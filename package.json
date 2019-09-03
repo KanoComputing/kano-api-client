@@ -12,9 +12,7 @@
   },
   "author": "Kano",
   "license": "ISC",
-  "dependencies": {
-    "@kano/gamification-engine": "^2.5.7"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@kano/eslint-config": "^1.0.0",
     "chai": "^4.1.2",
