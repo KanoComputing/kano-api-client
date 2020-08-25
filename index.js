@@ -1,5 +1,6 @@
 import { Client } from './lib/client.js';
 import { AccountClient } from './lib/account.js';
+import { ActivityClient } from './lib/activity.js';
 import { UserClient } from './lib/user.js';
 import { ShareClient } from './lib/share.js';
 import { TaskClient } from './lib/task.js';
@@ -21,6 +22,7 @@ class GamificationFallbackPlugin {
 export {
     Client,
     AccountClient,
+    ActivityClient,
     UserClient,
     ShareClient,
     TaskClient,
@@ -34,6 +36,7 @@ export {
 export default {
     Client,
     AccountClient,
+    ActivityClient,
     UserClient,
     ShareClient,
     TaskClient,
