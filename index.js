@@ -2,6 +2,7 @@ import { Client } from './lib/client.js';
 import { AccountClient } from './lib/account.js';
 import { ActivityClient } from './lib/activity.js';
 import { AdminClient } from './lib/admin.js';
+import { ClubClient } from './lib/club.js';
 import { UserClient } from './lib/user.js';
 import { ShareClient } from './lib/share.js';
 import { TaskClient } from './lib/task.js';
@@ -25,6 +26,7 @@ export {
     AccountClient,
     ActivityClient,
     AdminClient,
+    ClubClient,
     UserClient,
     ShareClient,
     TaskClient,
@@ -40,6 +42,7 @@ export default {
     AccountClient,
     ActivityClient,
     AdminClient,
+    ClubClient,
     UserClient,
     ShareClient,
     TaskClient,
