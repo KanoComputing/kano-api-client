@@ -9,12 +9,12 @@ import { TaskClient } from './lib/task.js';
 import { CommentClient } from './lib/comment.js';
 import { GamificationClient } from './lib/gamification.js';
 import { PingClient } from './lib/ping.js';
+import { JamClient } from './lib/jam.js';
 
 import { ResponseCache } from './lib/response-cache.js';
 
 // REMOVED: due to GamificationFallbackPlugin importing the whole gamification bundle
 // import { GamificationFallbackPlugin } from './plugins/gamification-fallback.js';
-
 class GamificationFallbackPlugin {
     constructor() {
         throw new Error('Import GamificationFallbackPlugin from root file "./plugins/gamification-fallback.js"');
@@ -35,6 +35,7 @@ export {
     PingClient,
     GamificationFallbackPlugin,
     ResponseCache,
+    JamClient
 };
 
 export default {
@@ -51,4 +52,5 @@ export default {
     PingClient,
     GamificationFallbackPlugin,
     ResponseCache,
+    JamClient
 };
