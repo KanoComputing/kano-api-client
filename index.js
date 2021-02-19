@@ -9,7 +9,7 @@ import { TaskClient } from './lib/task.js';
 import { CommentClient } from './lib/comment.js';
 import { GamificationClient } from './lib/gamification.js';
 import { PingClient } from './lib/ping.js';
-import { JamClient } from './lib/jam.js';
+import { JamsClient } from './lib/jams.js';
 
 import { ResponseCache } from './lib/response-cache.js';
 
@@ -35,7 +35,7 @@ export {
     PingClient,
     GamificationFallbackPlugin,
     ResponseCache,
-    JamClient
+    JamsClient,
 };
 
 export default {
@@ -52,5 +52,5 @@ export default {
     PingClient,
     GamificationFallbackPlugin,
     ResponseCache,
-    JamClient
+    JamsClient,
 };
